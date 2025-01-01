@@ -29,7 +29,8 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Bearer token interceptor for rest template. This interceptor handles the addition of a Bearer
- * token to HTTP requests.
+ * token to HTTP requests. Plain Text Bearer Token Interceptor (It should be re-written decode of
+ * OAUTH2 response)
  */
 public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
     ClientHttpRequestInitializer {
@@ -47,6 +48,12 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
   public BearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials) {
     this.bearerTokenCredentials = bearerTokenCredentials;
     this.restTemplate = new RestTemplate();
+  }
+
+  public BearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials,
+      RestTemplate restTemplate) {
+    this.bearerTokenCredentials = bearerTokenCredentials;
+    this.restTemplate = restTemplate;
   }
 
   /**
@@ -87,7 +94,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
    *
    * @return the active Bearer token
    */
-  private ActiveBearerToken getBearerToken() {
+  protected ActiveBearerToken getBearerToken() {
     if (this.activeBearerToken != null
         && activeBearerToken.expiresAt() > System.currentTimeMillis()) {
       return activeBearerToken;
@@ -102,7 +109,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
       ResponseEntity<Object> tokenResponse = restTemplate.postForEntity(url, tokenRequest,
           Object.class);
       if (tokenResponse.getStatusCode() == HttpStatus.OK) {
-        Object body = tokenResponse.getBody();
+        String body = tokenResponse.hasBody() ? (String) tokenResponse.getBody() : null;
         if (Objects.isNull(body)) {
           throw new AdapterException(
               AdapterStatus.createStatusFailedAsTechnical("Bearer token response body is null"));
@@ -128,7 +135,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
    *
    * @return the HTTP headers
    */
-  private HttpHeaders getHttpHeaders() {
+  protected HttpHeaders getHttpHeaders() {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(bearerTokenCredentials.getContentType() != null ? MediaType.valueOf(
         bearerTokenCredentials.getContentType()) : MediaType.APPLICATION_FORM_URLENCODED);
@@ -144,7 +151,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
    * @param bearerTokenCredentials the credentials required to obtain the Bearer token
    * @return a MultiValueMap containing the credentials
    */
-  private MultiValueMap<String, String> pullAllCredentials(
+  protected MultiValueMap<String, String> pullAllCredentials(
       BearerTokenCredentials bearerTokenCredentials) {
     MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
     Map<String, String> tokenMap = new LinkedHashMap<>();
@@ -161,7 +168,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
   /**
    * Record class representing an active Bearer token.
    */
-  private record ActiveBearerToken(String token, long expiresAt) {
+  protected record ActiveBearerToken(String token, long expiresAt) {
 
   }
 
