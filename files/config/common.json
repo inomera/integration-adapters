@@ -1,0 +1,33 @@
+{
+  "key": "config.adapter.common.v1",
+  "adapterProperties": {
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+      ],
+      "nonLoggingFields": [
+      ]
+    },
+    "headers": {
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 180000,
+      "maxConnections": 10,
+      "maxConnPerRoute": 10,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "auth": {
+      "type": "NONE"
+    }
+  }
+}
+
+
+
+
+

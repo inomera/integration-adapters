@@ -1,0 +1,184 @@
+plugins {
+  id 'java'
+  id 'maven-publish'
+}
+
+group = 'com.inomera.adapters'
+version = project.file('VERSION').text.trim()
+println "Gradle Artifact for other projects: \ncompile '${group}:${name}:${version}'"
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+  testImplementation {
+    extendsFrom compileOnly
+  }
+  all*.exclude group: "junit", module: "junit"
+  jaxws
+  axis
+}
+ext.jaxwsSourceDir = "src/main/java"
+
+compileJava.dependsOn(processResources, 'wsimport')
+dependencies {
+
+  //implementation "com.turkcell.selfcare-hub.dcs.integration:micro-integration:${versions.integration}"
+  //implementation "com.turkcell.selfcare-hub.dcs.middleware:micro-middleware:${versions.middleware}"
+
+  implementation project(path: ':micro-integration')
+  implementation project(path: ':micro-middleware')
+  implementation project(path: ':dynamic-adapter-config-bridge')
+
+  implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
+
+  // soap
+  implementation "org.springframework.boot:spring-boot-starter-web-services:${versions.spring_boot_ws}"
+
+  // http client dependencies for http rest & soap external adapter provider
+  implementation "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
+  implementation "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
+
+  //jaxb
+  implementation "com.sun.xml.ws:jaxws-tools:${versions.jaxws_tool}"
+  implementation "jakarta.xml.bind:jakarta.xml.bind-api:${versions.jakarta_bind_api}"
+  implementation "jakarta.xml.ws:jakarta.xml.ws-api:${versions.jakarta_xml_ws_api}"
+  implementation "jakarta.jws:jakarta.jws-api:${versions.jakarta_ws_api}"
+  implementation "com.sun.xml.ws:jaxws-rt:${versions.jakarta_ws_rt}"
+
+  // jaxb
+  jaxws "com.sun.xml.ws:jaxws-tools:${versions.jaxws_tool}",
+      "jakarta.xml.ws:jakarta.xml.ws-api:${versions.jakarta_xml_ws_api}",
+      "jakarta.xml.bind:jakarta.xml.bind-api:${versions.jakarta_bind_api}",
+      "jakarta.activation:jakarta.activation-api:${versions.jakarta_activation}",
+      "com.sun.xml.ws:jaxws-rt:${versions.jakarta_ws_rt}"
+
+  implementation "wsdl4j:wsdl4j:${versions.wsdl4j}"
+  implementation "javax.activation:activation:${versions.javax_activation}"
+
+  //axis
+  implementation "org.apache.axis2:axis2:${versions.axis2}"
+  implementation "org.apache.axis:axis-jaxrpc:${versions.axis2_jaxrpc}"
+  implementation "org.apache.axis2:axis2-saaj:${versions.axis2}"
+  implementation "org.apache.axis2:axis2-codegen:${versions.axis2}"
+  implementation "org.apache.axis2:axis2-adb-codegen:${versions.axis2}"
+
+  // axis
+  axis "org.apache.axis2:axis2:${versions.axis2}",
+      "org.apache.axis:axis-jaxrpc:${versions.axis2_jaxrpc}",
+      "org.apache.axis2:axis2-codegen:${versions.axis2}",
+      "org.apache.axis2:axis2-adb-codegen:${versions.axis2}",
+      "javax.activation:activation:${versions.javax_activation}"
+
+  // utilities
+  implementation "com.google.guava:guava:${versions.guava}"
+  implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+  implementation "org.slf4j:slf4j-api:${versions.slf4j}"
+  implementation "org.apache.commons:commons-lang3:${versions.commons_lang3}"
+
+  implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
+  annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
+  implementation "org.projectlombok:lombok:${versions.lombok}"
+  annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+
+  testImplementation "org.junit.jupiter:junit-jupiter:${versions.junit}"
+  testImplementation "org.springframework.boot:spring-boot-starter-test:${versions.spring_boot_test}"
+}
+
+
+tasks.register('sourceJar', Jar) {
+  duplicatesStrategy = 'include'
+  archiveClassifier = 'sources'
+  from sourceSets.main.allJava
+}
+
+tasks.register('wsimport') {
+  description = 'Generate classes from wsdl using wsimport'
+
+  doLast {
+    project.mkdir(jaxwsSourceDir)
+    ant {
+      taskdef(name: 'wsimport',
+          classname: 'com.sun.tools.ws.ant.WsImport',
+          classpath: configurations.jaxws.asPath)
+      def wsdlFile = sourceSets.main.resources.srcDirs.first()
+      wsimport(keep: true,
+          destdir: jaxwsSourceDir,
+          extension: "true",
+          verbose: true,
+          wsdl: new File(wsdlFile, "CountryInfoService.WSDL"),
+          xnocompile: true,
+          package: "generated.countryinfoservice") {
+        xjcarg(value: "-XautoNameResolution")
+      }
+    }
+  }
+}
+
+//axis
+sourceSets.main.java.srcDirs = ['gen_src/main/java', 'src/main/java']
+
+def GROUP_WSDL_TO_JAVA = 'WSDL-to-Java'
+
+tasks.register('genCountryInfoService', JavaExec) {
+  classpath configurations.axis
+  mainClass = "org.apache.axis2.wsdl.WSDL2Java"
+  args "-o", "${rootDir}/gen_src/main/java", "-uri", "${rootDir}/src/main/resources/CountryInfoService.WSDL"
+}
+
+compileJava.dependsOn(tasks.matching { it.group == GROUP_WSDL_TO_JAVA })
+
+test {
+  useJUnitPlatform()
+
+  testLogging {
+    // set options for log level LIFECYCLE
+    events "FAILED"
+    exceptionFormat "short"
+
+    // set options for log level DEBUG
+    debug {
+      events "started", "SKIPPED", "FAILED"
+      exceptionFormat "full"
+    }
+
+    // remove standard output/error logging from --info builds
+    // by assigning only 'failed' and 'skipped' events
+    info.events = ["FAILED", "SKIPPED"]
+  }
+}
+
+sourceSets {
+  main {
+    java.srcDirs += jaxwsSourceDir
+  }
+}
+
+compileJava {
+  options.compilerArgs += ['-parameters', '-Xlint:deprecation', '-Xlint:unchecked']
+}
+
+compileTestJava {
+  options.compilerArgs += ['-parameters', '-Xlint:deprecation', '-Xlint:unchecked']
+}
+
+publishing {
+  publications {
+
+    mavenJava(MavenPublication) {
+      groupId = "${project.group}"
+      artifactId = "${project.name}"
+      version = "${project.version}"
+
+      from components.java
+      artifact tasks.sourceJar
+    }
+  }
+}
+
+tasks.generatePomFileForMavenJavaPublication {
+  destination = file("${project.projectDir}/build/publications/mavenJava/${project.name}-${project.version}.pom")
+}

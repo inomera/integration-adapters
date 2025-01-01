@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'com.inomera.integration'
+version = project.file('VERSION').text.trim()
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    //!THIS PROJECT MUST NOT HAVE ANY DEPENDENCY. THIS IS VERY IMPORTANT!
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+    //!THIS PROJECT MUST NOT HAVE ANY DEPENDENCY. THIS IS VERY IMPORTANT!
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register('sourceJar', Jar) {
+    duplicatesStrategy = 'include'
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = "${project.group}"
+            artifactId = "${project.name}"
+            version = "${project.version}"
+
+            from components.java
+            artifact tasks.sourceJar
+        }
+    }
+}
+
+tasks.generatePomFileForMavenJavaPublication {
+    destination = file("${project.projectDir}/build/publications/mavenJava/${project.name}-${project.version}.pom")
+}

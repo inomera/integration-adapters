@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+
+ext {
+    versions = [
+            //main libs
+            integration       : '0.0.19',
+            middleware        : '1.0.1',
+            //ext libs
+            spring_boot_ws    : '3.1.5',
+            spring_ws_core    : '4.0.5',
+            spring_boot_test  : '3.1.5',
+            jaxws_tool        : '4.0.0',
+            jakarta_xml_ws    : '4.0.0',
+            jakarta_xml_ws_api: '4.0.0',
+            jakarta_bind_api  : '4.0.0',
+            jakarta_activation: '2.0.0',
+            javax_activation  : '1.1.1',
+            jakarta_ws_api    : '3.0.0',
+            jakarta_ws_rt     : '4.0.0',
+            jax_validation_api: '2.0.1.Final',
+            wsdl4j            : '1.6.3',
+            axis2             : '1.8.2',
+            axis2_jaxrpc      : '1.4',
+            httpclient5       : '5.2.1',
+            mapstruct         : '1.4.2.Final',
+            lombok_ms_binding : '0.2.0',
+            lombok            : '1.18.24',
+            jackson_databind  : '2.15.3',
+            jackson_core      : '2.15.3',
+            guava             : '31.1-jre',
+            slf4j             : '2.0.7',
+            commons_lang3     : '3.13.0',
+            junit             : '5.10.0',
+            commons_utils     : '0.0.7',
+            bean_utils        : '1.8.0',
+            mockito           : '5.3.1',
+            jsonpath          : '2.9.0'
+    ]
+}

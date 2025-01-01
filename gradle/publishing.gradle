@@ -1,0 +1,26 @@
+apply plugin: 'maven-publish'
+
+def repoUser = project.findProperty('username')
+    ?: System.getenv('username')
+    ?: 'Not Specified'
+
+def repoPass = project.findProperty('password')
+    ?: System.getenv('password')
+    ?: 'Not Specified'
+
+publishing {
+  repositories {
+    maven {
+      url "https://nexus.telco.inomera.com/repository/maven-releases/"
+      credentials {
+        username repoUser as String
+        password repoPass as String
+      }
+    }
+  }
+}
+
+tasks.register('sourceJar', Jar) {
+  archiveClassifier = 'sources'
+  from sourceSets.main.allJava
+}

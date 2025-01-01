@@ -2,11 +2,11 @@ package com.inomera.integration.config.model;
 
 import com.inomera.integration.auth.AuthType;
 
-public class BasicAuthentication extends Auth {
+public class BasicAuthCredentials extends Auth {
     private final String username;
     private final String password;
 
-    public BasicAuthentication(String username, String password) {
+    public BasicAuthCredentials(String username, String password) {
         super(AuthType.BASIC);
         this.username = username;
         this.password = password;
@@ -18,5 +18,13 @@ public class BasicAuthentication extends Auth {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String toString() {
+        return "BasicAuthentication{" +
+                "username='" + username + '\'' +
+                ", password='" +"**masked**" + '\'' +
+                '}';
     }
 }

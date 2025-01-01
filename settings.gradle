@@ -1,0 +1,17 @@
+rootProject.name = 'integration-adapters'
+
+include ':ms-example'
+project(':ms-example').projectDir = new File('example/ms-example')
+
+// adapters libs
+include 'micro-integration'
+include 'micro-middleware'
+
+// adapter extensions
+include 'dynamic-adapter-config-bridge'
+
+// sample adapter
+include 'mirket-adapter'
+
+//adapters
+

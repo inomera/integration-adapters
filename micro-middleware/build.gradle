@@ -1,0 +1,85 @@
+plugins {
+  id "java"
+  id "maven-publish"
+}
+
+group "com.inomera.middleware"
+version = project.file("VERSION").text.trim()
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+  maven {
+    credentials {
+      username 'telco-maven-read-only'
+      password '504B4CFAD88E48E532BFD939B22C5B3A'
+    }
+    url 'https://nexus.telco.inomera.com/repository/maven-releases'
+  }
+  mavenCentral()
+}
+
+
+dependencies {
+  //INFO : for versioning it should be api!! DO NOT REMOVE THE INFO LINE
+  //implementation "com.inomera.integration:micro-integration:${versions.integration}"
+  //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
+  implementation project(path: ':micro-integration')
+
+  // multiple ssl support for JDK certs
+  implementation 'com.inomera.telco:ssl-forge:1.0.0'
+
+  // soap
+  implementation "org.springframework.ws:spring-ws-core:${versions.spring_ws_core}"
+
+  implementation "jakarta.xml.ws:jakarta.xml.ws-api:${versions.jakarta_xml_ws_api}"
+  implementation "com.sun.xml.ws:jaxws-rt:${versions.jakarta_ws_rt}"
+  implementation "org.springframework.boot:spring-boot-starter-web:${versions.spring_boot_ws}"
+
+  // http client dependencies for http rest & soap external adapter provider
+  implementation "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
+  implementation "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
+
+  //utilities
+  implementation "org.apache.commons:commons-lang3:${versions.commons_lang3}"
+  implementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}"
+  implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+  implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
+  annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
+  implementation "org.projectlombok:lombok:${versions.lombok}"
+  annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+  implementation "com.jayway.jsonpath:json-path:${versions.jsonpath}"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+  testImplementation "org.mockito:mockito-junit-jupiter:${versions.mockito}"
+  testImplementation "org.mockito:mockito-core:${versions.mockito}"
+
+}
+
+test {
+  useJUnitPlatform()
+}
+
+tasks.register("sourceJar", Jar) {
+  duplicatesStrategy = "include"
+  archiveClassifier = "sources"
+  from sourceSets.main.allJava
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      groupId = "${project.group}"
+      artifactId = "${project.name}"
+      version = "${project.version}"
+
+      from components.java
+      artifact tasks.sourceJar
+    }
+  }
+}
+
+tasks.generatePomFileForMavenJavaPublication {
+  destination = file("${project.projectDir}/build/publications/mavenJava/${project.name}-${project.version}.pom")
+}

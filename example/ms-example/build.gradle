@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+
+group = 'com.inomera.adapter.example'
+version = project.file('VERSION').text.trim()
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(Tar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType(Zip).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation project(path: ':mirket-adapter')
+    implementation project(path: ':micro-integration')
+    implementation project(path: ':micro-middleware')
+    implementation project(path: ':dynamic-adapter-config-bridge')
+    implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+
+    // http client dependencies for http rest & soap external adapter provider
+    implementation "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
+    implementation "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
+
+    implementation "org.springframework.boot:spring-boot-starter-web-services:${versions.spring_boot_ws}"
+    implementation "org.springframework.ws:spring-ws-core:${versions.spring_ws_core}"
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
