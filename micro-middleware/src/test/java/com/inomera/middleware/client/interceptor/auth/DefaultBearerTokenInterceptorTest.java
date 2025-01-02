@@ -13,8 +13,9 @@ import static org.mockito.Mockito.when;
 
 import com.inomera.integration.config.model.BearerTokenCredentials;
 import com.inomera.integration.fault.AdapterException;
-import com.inomera.middleware.client.interceptor.auth.DefaultBearerTokenInterceptor.ActiveBearerToken;
+import com.inomera.middleware.client.interceptor.auth.BaseBearerTokenProvider.ActiveBearerToken;
 import java.io.IOException;
+import com.inomera.middleware.client.interceptor.auth.rest.RestDefaultBearerTokenInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
@@ -34,7 +35,7 @@ class DefaultBearerTokenInterceptorTest {
   private static final String EMPTY_TOKEN_RESPONSE = "{\"token_type\":\"bearer\",\"access_token\":\"\"}";
 
   private BearerTokenCredentials credentials;
-  private DefaultBearerTokenInterceptor interceptor;
+  private RestDefaultBearerTokenInterceptor interceptor;
   private RestTemplate restTemplate;
 
   @BeforeEach
@@ -44,7 +45,7 @@ class DefaultBearerTokenInterceptorTest {
     when(credentials.getTokenJsonPath()).thenReturn("$.access_token");
     when(credentials.getTtl()).thenReturn(3600L);
     restTemplate = mock(RestTemplate.class);
-    interceptor = new DefaultBearerTokenInterceptor(credentials, restTemplate);
+    interceptor = new RestDefaultBearerTokenInterceptor(credentials, restTemplate);
     when(restTemplate.postForEntity(eq("http://example.com/token"), any(HttpEntity.class),
         eq(Object.class)))
         .thenReturn(new ResponseEntity<>(TOKEN_RESPONSE, HttpStatus.OK));
@@ -107,7 +108,7 @@ class DefaultBearerTokenInterceptorTest {
 
   @Test
   void getBearerToken_whenTokenExpired() {
-    interceptor = spy(new DefaultBearerTokenInterceptor(credentials, restTemplate));
+    interceptor = spy(new RestDefaultBearerTokenInterceptor(credentials, restTemplate));
     doThrow(AdapterException.class).when(interceptor).getBearerToken();
     assertThrows(AdapterException.class, () -> interceptor.getBearerToken());
   }
@@ -151,11 +152,11 @@ class DefaultBearerTokenInterceptorTest {
     when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class)))
         .thenReturn(new ResponseEntity<>(TOKEN_RESPONSE, HttpStatus.OK));
 
-    ActiveBearerToken token = interceptor.getBearerToken();
+    ActiveBearerToken bearerToken = interceptor.getBearerToken();
 
-    assertNotNull(token);
+    assertNotNull(bearerToken);
     assertEquals(
         "AAAAAAAAAAAAAAAAAAAAAMLheAAAAAAA0%2BuSeid%2BULvsea4JtiGRiSDSJSI%3DEUifiRBkKG5E2XzMDjRfl76ZC9Ub0wnz4XsNiRVBChTYbJcE3F",
-        token.token());
+        bearerToken.token());
   }
 }

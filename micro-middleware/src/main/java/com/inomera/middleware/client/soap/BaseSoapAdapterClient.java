@@ -1,8 +1,12 @@
 package com.inomera.middleware.client.soap;
 
+import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.client.HttpAdapterClient;
 import com.inomera.integration.client.HttpSoapAdapterClient;
 import com.inomera.integration.config.model.AdapterConfig;
+import com.inomera.integration.config.model.AuthHeadersCredentials;
+import com.inomera.integration.config.model.BasicAuthCredentials;
+import com.inomera.integration.config.model.BearerTokenCredentials;
 import com.inomera.integration.constant.Status;
 import com.inomera.integration.fault.AdapterAuthenticationException;
 import com.inomera.integration.fault.AdapterException;
@@ -11,6 +15,9 @@ import com.inomera.integration.fault.AdapterSerializationException;
 import com.inomera.integration.model.AdapterStatus;
 import com.inomera.integration.model.HttpAdapterRequest;
 import com.inomera.integration.model.HttpAdapterResponse;
+import com.inomera.middleware.client.interceptor.auth.soap.SoapBasicAuthenticationInterceptor;
+import com.inomera.middleware.client.interceptor.auth.soap.SoapHttpHeaderInterceptor;
+import com.inomera.middleware.client.interceptor.auth.soap.SoapNoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.SoapLoggingInterceptor;
 import jakarta.xml.bind.JAXBElement;
 import java.io.IOException;
@@ -176,14 +183,15 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
       }
       getWebServiceTemplate().setDefaultUri(adapterConfig.getUrl());
 
+      // custom interceptors
       List<ClientInterceptor> interceptors = new ArrayList<>();
       if (!ObjectUtils.isEmpty(getWebServiceTemplate().getInterceptors())) {
         interceptors.addAll(Arrays.stream(getWebServiceTemplate().getInterceptors()).toList());
       }
-      interceptors.add(new SoapLoggingInterceptor(adapterConfig.getAdapterLogging()));
-      //TODO : add many interceptors (auth, logging etc.)
-
-
+      // cross-cut interceptors security, logging
+      List<ClientInterceptor> clientHttpRequestInterceptors = getClientHttpRequestInterceptors(
+          adapterConfig);
+      interceptors.addAll(clientHttpRequestInterceptors);
       getWebServiceTemplate().setInterceptors(interceptors.toArray(new ClientInterceptor[]{}));
 
       setMessageSender(this.webServiceMessageSender);
@@ -207,7 +215,6 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
                 "Response is null"));
       }
       O response = (O) responseAndHeaders.getResponse();
-      //TODO : add visitor pattern for explicit casting (jaxb, axis)
       if (response instanceof JAXBElement) {
         response = ((JAXBElement<O>) response).getValue();
       }
@@ -225,6 +232,42 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
     }
   }
 
+  private List<ClientInterceptor> getClientHttpRequestInterceptors(AdapterConfig adapterConfig) {
+    List<ClientInterceptor> interceptors = new ArrayList<>();
+    final ClientInterceptor authInterceptor = getAuthInterceptor(adapterConfig);
+    interceptors.add(authInterceptor);
+    interceptors.add(new SoapLoggingInterceptor(adapterConfig.getAdapterLogging()));
+    return interceptors;
+  }
+
+  private ClientInterceptor getAuthInterceptor(AdapterConfig adapterConfig) {
+    AuthType authType = adapterConfig.getAdapterProperties().getAuth().getType();
+    switch (authType) {
+      case BASIC -> {
+        BasicAuthCredentials basicAuth = (BasicAuthCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(basicAuth, "BasicAuthentication cannot be null");
+        return new SoapBasicAuthenticationInterceptor(basicAuth.getUsername(),
+            basicAuth.getPassword());
+      }
+      case HEADER -> {
+        AuthHeadersCredentials headerAuth = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(headerAuth, "AuthHeaders cannot be null");
+        return new SoapHttpHeaderInterceptor(headerAuth.getHeaders());
+      }
+      case BEARER -> {
+        BearerTokenCredentials bearerAuth = (BearerTokenCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(bearerAuth, "BearerToken cannot be null");
+        return new SoapNoneAuthInterceptor();
+      }
+      default -> {
+        return new SoapNoneAuthInterceptor();
+      }
+    }
+  }
+
   protected boolean isAuthProblem(HttpAdapterRequest httpAdapterRequest,
       WebServiceTransportException te) {
     return !httpAdapterRequest.getHeaders().isEmpty() && te.getMessage()
@@ -235,7 +278,7 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
       throws IOException {
     TransportContext context = TransportContextHolder.getTransportContext();
     HeadersAwareSenderWebServiceConnection connection = (HeadersAwareSenderWebServiceConnection) context.getConnection();
-
+    //TODO: custom or cross-cut interceptors should be added dynamic configuration
     //runs before the request is sent.
     if (httpAdapterRequest.getHeaders() != null) {
       for (Map.Entry<String, String> header : httpAdapterRequest.getHeaders().entrySet()) {
@@ -279,8 +322,8 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
           headers.put(headerName, responseHeaders.next());
         }
       } catch (IOException e) {
+        //swallow exception, just logging
         LOG.error("Error occurred when handling response", e);
-        //swallow exception
       }
     });
 
@@ -289,7 +332,7 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
 
   @Getter
   @AllArgsConstructor
-  class ResponseAndHeader {
+  static class ResponseAndHeader {
 
     private Map<String, String> headers;
     private Object response;

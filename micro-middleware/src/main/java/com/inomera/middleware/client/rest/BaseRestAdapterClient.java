@@ -14,9 +14,9 @@ import com.inomera.integration.fault.AdapterSerializationException;
 import com.inomera.integration.model.AdapterStatus;
 import com.inomera.integration.model.HttpAdapterRequest;
 import com.inomera.integration.model.HttpAdapterResponse;
-import com.inomera.middleware.client.interceptor.auth.DefaultBearerTokenInterceptor;
-import com.inomera.middleware.client.interceptor.auth.HttpHeaderInterceptor;
-import com.inomera.middleware.client.interceptor.auth.NoneAuthInterceptor;
+import com.inomera.middleware.client.interceptor.auth.rest.RestDefaultBearerTokenInterceptor;
+import com.inomera.middleware.client.interceptor.auth.rest.RestHttpHeaderInterceptor;
+import com.inomera.middleware.client.interceptor.auth.rest.RestNoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.RestLoggingInterceptor;
 import com.inomera.middleware.util.HeaderUtils;
 import java.io.IOException;
@@ -169,16 +169,16 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
         AuthHeadersCredentials headerAuth = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
             .getAuth();
         Assert.notNull(headerAuth, "AuthHeaders cannot be null");
-        return new HttpHeaderInterceptor(headerAuth.getHeaders());
+        return new RestHttpHeaderInterceptor(headerAuth.getHeaders());
       }
       case BEARER -> {
         BearerTokenCredentials bearerAuth = (BearerTokenCredentials) adapterConfig.getAdapterProperties()
             .getAuth();
         Assert.notNull(bearerAuth, "BearerToken cannot be null");
-        return new DefaultBearerTokenInterceptor(bearerAuth);
+        return new RestDefaultBearerTokenInterceptor(bearerAuth);
       }
       default -> {
-        return new NoneAuthInterceptor();
+        return new RestNoneAuthInterceptor();
       }
     }
   }

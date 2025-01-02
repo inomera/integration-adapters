@@ -1,4 +1,4 @@
-package com.inomera.middleware.client.interceptor.auth;
+package com.inomera.middleware.client.interceptor.auth.rest;
 
 import com.inomera.integration.auth.AuthenticationProvider;
 import java.io.IOException;
@@ -7,9 +7,9 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
-public class NoneAuthInterceptor implements ClientHttpRequestInterceptor, AuthenticationProvider {
+public class RestNoneAuthInterceptor implements ClientHttpRequestInterceptor, AuthenticationProvider {
 
-  public NoneAuthInterceptor() {
+  public RestNoneAuthInterceptor() {
   }
 
   @Override
