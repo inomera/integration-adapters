@@ -1,39 +1,32 @@
 package com.inomera.middleware.client.interceptor.auth;
 
+import com.inomera.integration.auth.AuthenticationProvider;
 import com.inomera.integration.config.model.BearerTokenCredentials;
 import com.inomera.integration.fault.AdapterException;
 import com.inomera.integration.model.AdapterStatus;
 import com.jayway.jsonpath.JsonPath;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInitializer;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * Bearer token interceptor for rest template. This interceptor handles the addition of a Bearer
  * token to HTTP requests. Plain Text Bearer Token Interceptor (It should be re-written decode of
  * OAUTH2 response)
  */
-public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
-    ClientHttpRequestInitializer {
+public class DefaultBearerTokenInterceptor implements ClientHttpRequestInterceptor,
+    ClientHttpRequestInitializer, AuthenticationProvider {
 
   private final BearerTokenCredentials bearerTokenCredentials;
   private final RestTemplate restTemplate;
@@ -45,12 +38,12 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor,
    *
    * @param bearerTokenCredentials the credentials required to obtain the Bearer token
    */
-  public BearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials) {
+  public DefaultBearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials) {
     this.bearerTokenCredentials = bearerTokenCredentials;
     this.restTemplate = new RestTemplate();
   }
 
-  public BearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials,
+  public DefaultBearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials,
       RestTemplate restTemplate) {
     this.bearerTokenCredentials = bearerTokenCredentials;
     this.restTemplate = restTemplate;

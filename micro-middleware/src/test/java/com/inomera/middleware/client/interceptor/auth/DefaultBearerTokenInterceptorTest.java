@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -13,10 +13,9 @@ import static org.mockito.Mockito.when;
 
 import com.inomera.integration.config.model.BearerTokenCredentials;
 import com.inomera.integration.fault.AdapterException;
-import com.inomera.middleware.client.interceptor.auth.BearerTokenInterceptor.ActiveBearerToken;
+import com.inomera.middleware.client.interceptor.auth.DefaultBearerTokenInterceptor.ActiveBearerToken;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,13 +28,13 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-class BearerTokenInterceptorTest {
+class DefaultBearerTokenInterceptorTest {
 
   private static final String TOKEN_RESPONSE = "{\"token_type\":\"bearer\",\"access_token\":\"AAAAAAAAAAAAAAAAAAAAAMLheAAAAAAA0%2BuSeid%2BULvsea4JtiGRiSDSJSI%3DEUifiRBkKG5E2XzMDjRfl76ZC9Ub0wnz4XsNiRVBChTYbJcE3F\"}";
   private static final String EMPTY_TOKEN_RESPONSE = "{\"token_type\":\"bearer\",\"access_token\":\"\"}";
 
   private BearerTokenCredentials credentials;
-  private BearerTokenInterceptor interceptor;
+  private DefaultBearerTokenInterceptor interceptor;
   private RestTemplate restTemplate;
 
   @BeforeEach
@@ -45,7 +44,7 @@ class BearerTokenInterceptorTest {
     when(credentials.getTokenJsonPath()).thenReturn("$.access_token");
     when(credentials.getTtl()).thenReturn(3600L);
     restTemplate = mock(RestTemplate.class);
-    interceptor = new BearerTokenInterceptor(credentials, restTemplate);
+    interceptor = new DefaultBearerTokenInterceptor(credentials, restTemplate);
     when(restTemplate.postForEntity(eq("http://example.com/token"), any(HttpEntity.class),
         eq(Object.class)))
         .thenReturn(new ResponseEntity<>(TOKEN_RESPONSE, HttpStatus.OK));
@@ -107,13 +106,9 @@ class BearerTokenInterceptorTest {
   }
 
   @Test
-  @Disabled
-  void getBearerToken_whenTokenExpired() throws InterruptedException {
-    ActiveBearerToken expiredToken = new ActiveBearerToken("expired_token",
-        System.currentTimeMillis() - 1);
-    interceptor = spy(new BearerTokenInterceptor(credentials, restTemplate));
-    doReturn(expiredToken).when(interceptor).getBearerToken();
-    Thread.sleep(2_000);
+  void getBearerToken_whenTokenExpired() {
+    interceptor = spy(new DefaultBearerTokenInterceptor(credentials, restTemplate));
+    doThrow(AdapterException.class).when(interceptor).getBearerToken();
     assertThrows(AdapterException.class, () -> interceptor.getBearerToken());
   }
 

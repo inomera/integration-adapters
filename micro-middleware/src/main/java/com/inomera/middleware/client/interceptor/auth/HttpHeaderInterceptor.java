@@ -2,13 +2,14 @@ package com.inomera.middleware.client.interceptor.auth;
 
 import java.io.IOException;
 import java.util.Map;
+import com.inomera.integration.auth.AuthenticationProvider;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 
-public class HttpHeaderInterceptor implements ClientHttpRequestInterceptor {
+public class HttpHeaderInterceptor implements ClientHttpRequestInterceptor, AuthenticationProvider {
 
   private final Map<String, String> headers;
 

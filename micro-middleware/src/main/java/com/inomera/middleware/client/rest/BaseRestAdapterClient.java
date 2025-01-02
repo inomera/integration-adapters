@@ -4,7 +4,6 @@ import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.client.HttpAdapterClient;
 import com.inomera.integration.client.HttpRestAdapterClient;
 import com.inomera.integration.config.model.AdapterConfig;
-import com.inomera.integration.config.model.AdapterLogging;
 import com.inomera.integration.config.model.AuthHeadersCredentials;
 import com.inomera.integration.config.model.BasicAuthCredentials;
 import com.inomera.integration.config.model.BearerTokenCredentials;
@@ -15,8 +14,9 @@ import com.inomera.integration.fault.AdapterSerializationException;
 import com.inomera.integration.model.AdapterStatus;
 import com.inomera.integration.model.HttpAdapterRequest;
 import com.inomera.integration.model.HttpAdapterResponse;
-import com.inomera.middleware.client.interceptor.auth.BearerTokenInterceptor;
+import com.inomera.middleware.client.interceptor.auth.DefaultBearerTokenInterceptor;
 import com.inomera.middleware.client.interceptor.auth.HttpHeaderInterceptor;
+import com.inomera.middleware.client.interceptor.auth.NoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.RestLoggingInterceptor;
 import com.inomera.middleware.util.HeaderUtils;
 import java.io.IOException;
@@ -77,35 +77,8 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     AdapterConfig adapterConfig = configSupplierFunc.get();
     //TODO : AdapterConfig should be checked for null or not
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
-    final AdapterLogging adapterLogging = adapterConfig.getAdapterLogging();
-
-    //TODO : enrich interceptors
-
-    List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
-    if (adapterConfig.getAdapterProperties().getAuth().getType() == AuthType.BASIC) {
-      BasicAuthCredentials basicAuthCredentials = (BasicAuthCredentials) adapterConfig.getAdapterProperties()
-          .getAuth();
-      Assert.notNull(basicAuthCredentials, "BasicAuthentication cannot be null");
-      BasicAuthenticationInterceptor basicAuthenticationInterceptor = new BasicAuthenticationInterceptor(
-          basicAuthCredentials.getUsername(), basicAuthCredentials.getPassword());
-      interceptors.add(basicAuthenticationInterceptor);
-    }
-    if (adapterConfig.getAdapterProperties().getAuth().getType() == AuthType.HEADER) {
-      AuthHeadersCredentials authHeadersCredentials = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
-          .getAuth();
-      Assert.notNull(authHeadersCredentials, "AuthHeaders cannot be null");
-      interceptors.add(new HttpHeaderInterceptor(authHeadersCredentials.getHeaders()));
-    }
-
-    if (adapterConfig.getAdapterProperties().getAuth().getType() == AuthType.BEARER) {
-      BearerTokenCredentials bearerTokenCredentials = (BearerTokenCredentials) adapterConfig.getAdapterProperties()
-          .getAuth();
-      Assert.notNull(bearerTokenCredentials, "BearerToken cannot be null");
-      interceptors.add(new BearerTokenInterceptor(bearerTokenCredentials));
-    }
-
-    RestLoggingInterceptor restLoggingInterceptor = new RestLoggingInterceptor(adapterLogging);
-    interceptors.add(restLoggingInterceptor);
+    List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
+        adapterConfig);
 
     this.restTemplate = new RestTemplateBuilder()
         .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory))
@@ -121,8 +94,8 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     AdapterConfig adapterConfig = configSupplierFunc.get();
     //TODO : AdapterConfig should be checked for null or not
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
-    final AdapterLogging adapterLogging = adapterConfig.getAdapterLogging();
-
+    List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
+        adapterConfig);
     this.restTemplate = new RestTemplateBuilder()
         .requestFactory(settings -> new BufferingClientHttpRequestFactory(
             ClientHttpRequestFactories.get(clientHttpRequestFactoryType,
@@ -133,9 +106,7 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
                         adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
 //                    .withSslBundle(adapterConfig.getAdapterProperties().getHttp().isSkipSsl()) //TODO : SSLBundle with ssl forge library
             )))
-        .interceptors(new RestLoggingInterceptor(adapterLogging),
-            new BasicAuthenticationInterceptor("user",
-                "pass")) //TODO : Auth provider or config value pass using rest template abstraction
+        .interceptors(interceptors)
         .build();
     this.restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
   }
@@ -173,6 +144,42 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     } catch (RestClientException e) {
       LOG.error("RestClientException exception occurred", e);
       throw createException(e, httpAdapterRequest);
+    }
+  }
+
+  private List<ClientHttpRequestInterceptor> getClientHttpRequestInterceptors(
+      AdapterConfig adapterConfig) {
+    List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+    final ClientHttpRequestInterceptor authInterceptor = getAuthInterceptor(adapterConfig);
+    interceptors.add(authInterceptor);
+    interceptors.add(new RestLoggingInterceptor(adapterConfig.getAdapterLogging()));
+    return interceptors;
+  }
+
+  private ClientHttpRequestInterceptor getAuthInterceptor(AdapterConfig adapterConfig) {
+    AuthType authType = adapterConfig.getAdapterProperties().getAuth().getType();
+    switch (authType) {
+      case BASIC -> {
+        BasicAuthCredentials basicAuth = (BasicAuthCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(basicAuth, "BasicAuthentication cannot be null");
+        return new BasicAuthenticationInterceptor(basicAuth.getUsername(), basicAuth.getPassword());
+      }
+      case HEADER -> {
+        AuthHeadersCredentials headerAuth = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(headerAuth, "AuthHeaders cannot be null");
+        return new HttpHeaderInterceptor(headerAuth.getHeaders());
+      }
+      case BEARER -> {
+        BearerTokenCredentials bearerAuth = (BearerTokenCredentials) adapterConfig.getAdapterProperties()
+            .getAuth();
+        Assert.notNull(bearerAuth, "BearerToken cannot be null");
+        return new DefaultBearerTokenInterceptor(bearerAuth);
+      }
+      default -> {
+        return new NoneAuthInterceptor();
+      }
     }
   }
 
