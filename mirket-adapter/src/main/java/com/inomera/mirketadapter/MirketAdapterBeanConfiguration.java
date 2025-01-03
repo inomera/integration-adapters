@@ -1,6 +1,6 @@
 package com.inomera.mirketadapter;
 
-import static com.inomera.middleware.config.HttpBeanConfiguration.BEAN_APACHE_HTTP_REST_CLIENT;
+import static com.inomera.middleware.config.HttpBeanConfiguration.BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG;
 import static com.inomera.middleware.config.HttpBeanConfiguration.BEAN_APACHE_HTTP_SOAP_CLIENT;
 import static com.inomera.telco.commons.config.spring.BeanNames.BEAN_CONFIGURATION_HOLDER;
 
@@ -37,10 +37,10 @@ public class MirketAdapterBeanConfiguration {
   @Bean
   @ConditionalOnClass(AdapterConfigDataSupplier.class)
   public MirketAdapter mirketAdapter(AdapterConfigDataSupplier adapterConfigDataSupplier) {
-    final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = (ApacheHttpRestAdapterClient) applicationContext.getBean(
-        BEAN_APACHE_HTTP_REST_CLIENT);
     Supplier<AdapterConfig> configSupplierFunc = () -> adapterConfigDataSupplier.getConfigV1(
         CONFIG_MIRKET_KEY);
+    final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = (ApacheHttpRestAdapterClient) applicationContext.getBean(
+        BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG, configSupplierFunc);
     Assert.notNull(apacheHttpRestAdapterClient, "Mirket ApacheHttpRestAdapterClient cannot be NULL");
     return new MirketAdapterImpl(configSupplierFunc, apacheHttpRestAdapterClient);
   }

@@ -22,8 +22,7 @@ import org.springframework.ws.transport.context.TransportContextHolder;
  * A {@link ClientInterceptor} implementation that adds headers to the request headers.
  */
 @Slf4j
-public class SoapHttpHeaderInterceptor implements
-    ClientInterceptor, AuthenticationProvider {
+public class SoapHttpHeaderInterceptor implements ClientInterceptor, AuthenticationProvider {
 
   private final Map<String, String> headers;
 
@@ -64,12 +63,12 @@ public class SoapHttpHeaderInterceptor implements
 
   @Override
   public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override
   public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override

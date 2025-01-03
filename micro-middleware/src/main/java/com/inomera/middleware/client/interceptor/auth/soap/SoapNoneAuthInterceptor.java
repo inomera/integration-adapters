@@ -9,17 +9,17 @@ public class SoapNoneAuthInterceptor implements ClientInterceptor, Authenticatio
 
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override
   public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override
   public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override

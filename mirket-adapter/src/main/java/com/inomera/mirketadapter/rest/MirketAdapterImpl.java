@@ -3,6 +3,7 @@ package com.inomera.mirketadapter.rest;
 import com.inomera.integration.client.HttpRestAdapterClient;
 import com.inomera.integration.config.model.AdapterConfig;
 import com.inomera.integration.constant.HttpMethod;
+import com.inomera.integration.interceptor.IntegrationAdapterInterceptor;
 import com.inomera.integration.model.AdapterResponse;
 import com.inomera.integration.model.AdapterStatus;
 import com.inomera.integration.model.HttpAdapterResponse;
@@ -11,6 +12,7 @@ import com.inomera.mirketadapter.rest.model.MirketRestAdapterProperties;
 import com.inomera.mirketadapter.rest.model.MirketRestAdapterRequest;
 import com.inomera.mirketadapter.rest.rto.FirstRestResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,22 +26,12 @@ public class MirketAdapterImpl extends RestAdapter<AdapterConfig> implements
       HttpRestAdapterClient httpAdapterClient) {
     super(configSupplierFunc, httpAdapterClient);
   }
-//
-//  public MirketAdapterImpl(AdapterConfigDataSupplier adapterConfigDataSupplier,
-//      HttpRestAdapterClient httpAdapterClient) throws InstantiationException {
-//    super(adapterConfigDataSupplier, httpAdapterClient);
-//  }
-//
-//  public MirketAdapterImpl(AdapterConfigDataSupplier adapterConfigDataSupplier, String configKey,
-//      List<IntegrationAdapterInterceptor> interceptors,
-//      HttpRestAdapterClient httpRestAdapterClient) {
-//    super(adapterConfigDataSupplier, httpRestAdapterClient, configKey);
-//  }
-//
-//  public MirketAdapterImpl(AdapterConfigDataSupplier adapterConfigDataSupplier, String configKey,
-//      HttpRestAdapterClient httpRestAdapterClient) {
-//    super(adapterConfigDataSupplier, httpRestAdapterClient, configKey);
-//  }
+
+  public MirketAdapterImpl(Supplier<AdapterConfig> adapterConfigDataSupplier,
+      HttpRestAdapterClient httpRestAdapterClient, List<IntegrationAdapterInterceptor> interceptors)
+      throws InstantiationException {
+    super(adapterConfigDataSupplier, httpRestAdapterClient, interceptors);
+  }
 
   @Override
   public <I, O> AdapterResponse<O> getFirst(MirketRestAdapterRequest adapterRequest,

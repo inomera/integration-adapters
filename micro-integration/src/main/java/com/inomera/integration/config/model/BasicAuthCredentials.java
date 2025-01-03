@@ -6,6 +6,12 @@ public class BasicAuthCredentials extends Auth {
     private final String username;
     private final String password;
 
+    public BasicAuthCredentials() {
+        super(AuthType.BASIC);
+        this.username = null;
+        this.password = null;
+    }
+
     public BasicAuthCredentials(String username, String password) {
         super(AuthType.BASIC);
         this.username = username;
@@ -24,7 +30,7 @@ public class BasicAuthCredentials extends Auth {
     public String toString() {
         return "BasicAuthentication{" +
                 "username='" + username + '\'' +
-                ", password='" +"**masked**" + '\'' +
+                ", password='" + "**masked**" + '\'' +
                 '}';
     }
 }

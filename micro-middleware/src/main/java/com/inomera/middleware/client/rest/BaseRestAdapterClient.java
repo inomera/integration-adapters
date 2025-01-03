@@ -118,7 +118,7 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
       var headers = httpAdapterRequest.getHeaders() != null ? new LinkedMultiValueMap<>(
           HeaderUtils.convertToListMap(httpAdapterRequest.getHeaders()))
           : new LinkedMultiValueMap<String, String>();
-
+      //TODO: add interceptor for dynamic configuration
       headers.addIfAbsent(HttpHeaders.CONTENT_TYPE,
           getHeaderOrDefault(httpAdapterRequest, HttpHeaders.CONTENT_TYPE,
               MimeTypeUtils.APPLICATION_JSON_VALUE));
@@ -169,7 +169,7 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
         AuthHeadersCredentials headerAuth = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
             .getAuth();
         Assert.notNull(headerAuth, "AuthHeaders cannot be null");
-        return new RestHttpHeaderInterceptor(headerAuth.getHeaders());
+        return new RestHttpHeaderInterceptor(headerAuth.getHeadersAsStringMap());
       }
       case BEARER -> {
         BearerTokenCredentials bearerAuth = (BearerTokenCredentials) adapterConfig.getAdapterProperties()

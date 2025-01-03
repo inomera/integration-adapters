@@ -254,7 +254,8 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
         AuthHeadersCredentials headerAuth = (AuthHeadersCredentials) adapterConfig.getAdapterProperties()
             .getAuth();
         Assert.notNull(headerAuth, "AuthHeaders cannot be null");
-        return new SoapHttpHeaderInterceptor(headerAuth.getHeaders());
+        Map<String, String> headers = headerAuth.getHeadersAsStringMap();
+        return new SoapHttpHeaderInterceptor(headers);
       }
       case BEARER -> {
         BearerTokenCredentials bearerAuth = (BearerTokenCredentials) adapterConfig.getAdapterProperties()
@@ -280,6 +281,7 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
     HeadersAwareSenderWebServiceConnection connection = (HeadersAwareSenderWebServiceConnection) context.getConnection();
     //TODO: custom or cross-cut interceptors should be added dynamic configuration
     //runs before the request is sent.
+
     if (httpAdapterRequest.getHeaders() != null) {
       for (Map.Entry<String, String> header : httpAdapterRequest.getHeaders().entrySet()) {
         try {

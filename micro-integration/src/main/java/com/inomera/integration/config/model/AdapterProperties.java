@@ -91,7 +91,7 @@ public class AdapterProperties implements Serializable {
         this.http.patch(commonConfigAdapterProperties.getHttp());
 
         if (this.auth == null && commonConfigAdapterProperties.getAuth() == null) {
-            this.auth = new Auth();
+            this.auth = new Auth.NoneAuth();
         }
         this.auth.patch(commonConfigAdapterProperties.getAuth());
 

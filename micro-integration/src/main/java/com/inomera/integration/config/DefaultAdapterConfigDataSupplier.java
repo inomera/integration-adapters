@@ -32,9 +32,7 @@ public class DefaultAdapterConfigDataSupplier implements AdapterConfigDataSuppli
                                 .maxConnections(10)
                                 .skipSsl(true)
                                 .build())
-                        .auth(Auth.builder()
-                                .type(AuthType.NONE)
-                                .build())
+                        .auth(new Auth.NoneAuth())
                         .build())
                 .build();
     }

@@ -2,12 +2,19 @@ package com.inomera.adapter.config.bridge;
 
 import com.inomera.adapter.config.bridge.exception.AdapterConfigException;
 import com.inomera.adapter.config.bridge.util.AdapterConfigMerger;
+import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.config.AdapterConfigDataSupplier;
 import com.inomera.integration.config.model.AdapterConfig;
 import com.inomera.integration.config.model.AdapterProperties;
+import com.inomera.integration.config.model.Auth;
+import com.inomera.integration.config.model.Auth.NoneAuth;
+import com.inomera.integration.config.model.AuthHeadersCredentials;
+import com.inomera.integration.config.model.BasicAuthCredentials;
+import com.inomera.integration.config.model.BearerTokenCredentials;
 import com.inomera.telco.commons.config.ConfigurationHolder;
 import com.inomera.telco.commons.lang.Assert;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,15 +30,51 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
   public AdapterConfig getConfigV1(String key) {
     Assert.notNull(key);
     try {
-      final AdapterProperties adapterProperties = getConfig(key, AdapterProperties.class);
-      if (null == adapterProperties) {
+      final Map<String, Object> adapterPropertiesMap = getConfig(key, Map.class);
+      if (null == adapterPropertiesMap) {
         throw new AdapterConfigException("adapter config Key::" + key + " is not found");
       }
+
+      Map<String, Object> authMap = (Map<String, Object>) adapterPropertiesMap.get("auth");
+      final Auth authCredentials = getAuthCredentials(authMap);
+      final AdapterProperties adapterProperties = getConfig(key, AdapterProperties.class);
+      adapterProperties.setAuth(authCredentials);
       final AdapterConfig adapterConfig = new AdapterConfig(key, adapterProperties);
       return mergeWithCommonConfigIfNotSetInAdapterConfig(adapterConfig);
     } catch (Exception e) {
       LOG.error("key::{}, Config deserialization error occurred", key, e);
       throw new AdapterConfigException("Adapter Config Exception", e.getCause());
+    }
+  }
+
+  private Auth getAuthCredentials(Map<String, Object> authMap) {
+    String authType = (String) authMap.get("type");
+    switch (AuthType.valueOf(authType)) {
+      case BASIC -> {
+        return new BasicAuthCredentials((String) authMap.get("username"),
+            (String) authMap.get("password"));
+      }
+      case HEADER -> {
+        return new AuthHeadersCredentials((Map<String, Object>) authMap.get("headers"));
+      }
+      case BEARER -> {
+        return new BearerTokenCredentials.Builder()
+            .url((String) authMap.get("url"))
+            .scope((String) authMap.get("scope"))
+            .username((String) authMap.get("username"))
+            .password((String) authMap.get("password"))
+            .clientId((String) authMap.get("clientId"))
+            .clientSecret((String) authMap.get("clientSecret"))
+            .grantType((String) authMap.get("grantType"))
+            .ttl(Long.parseLong(authMap.get("ttl").toString()))
+            .contentType((String) authMap.get("contentType"))
+            .accept((String) authMap.get("accept"))
+            .tokenJsonPath((String) authMap.get("tokenJsonPath"))
+            .build();
+      }
+      default -> {
+        return new NoneAuth();
+      }
     }
   }
 

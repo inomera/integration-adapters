@@ -24,10 +24,8 @@ configurations {
 ext.jaxwsSourceDir = "src/main/java"
 
 compileJava.dependsOn(processResources, 'wsimport')
-dependencies {
 
-  //implementation "com.turkcell.selfcare-hub.dcs.integration:micro-integration:${versions.integration}"
-  //implementation "com.turkcell.selfcare-hub.dcs.middleware:micro-middleware:${versions.middleware}"
+dependencies {
 
   implementation project(path: ':micro-integration')
   implementation project(path: ':micro-middleware')

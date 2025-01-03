@@ -68,12 +68,12 @@ public class SoapDefaultBearerTokenInterceptor extends BaseBearerTokenProvider i
 
   @Override
   public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override
   public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
-    return false;
+    return true;
   }
 
   @Override
