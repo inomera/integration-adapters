@@ -34,11 +34,23 @@ public class SoapDefaultBearerTokenInterceptor extends BaseBearerTokenProvider i
     super(bearerTokenCredentials, new RestTemplate());
   }
 
+  /**
+   * Constructor for BearerTokenInterceptor.
+   *
+   * @param bearerTokenCredentials the credentials required to obtain the Bearer token
+   * @param restTemplate           the rest template
+   */
   public SoapDefaultBearerTokenInterceptor(BearerTokenCredentials bearerTokenCredentials,
       RestTemplate restTemplate) {
     super(bearerTokenCredentials, restTemplate);
   }
 
+  /**
+   * Intercepts the HTTP request to add the Bearer token.
+   *
+   * @param messageContext the message context
+   * @return true if the request should be processed; false if the interceptor should be skipped
+   */
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
     if (messageContext.getRequest() instanceof SaajSoapMessage soapMessage) {

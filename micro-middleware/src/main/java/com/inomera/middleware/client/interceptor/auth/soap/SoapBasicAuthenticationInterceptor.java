@@ -27,10 +27,22 @@ public class SoapBasicAuthenticationInterceptor implements ClientInterceptor,
 
   private final String encodedCredentials;
 
+  /**
+   * Create a new instance of the {@link SoapBasicAuthenticationInterceptor} with the provided
+   * credentials.
+   */
   public SoapBasicAuthenticationInterceptor(String username, String password) {
     this(username, password, null);
   }
 
+  /**
+   * Create a new instance of the {@link SoapBasicAuthenticationInterceptor} with the provided
+   * credentials.
+   *
+   * @param username the username
+   * @param password the password
+   * @param charset  the charset
+   */
   public SoapBasicAuthenticationInterceptor(String username, String password, Charset charset) {
     Assert.notNull(username, "username cannot be null");
     Assert.notNull(password, "password cannot be null");
@@ -38,6 +50,12 @@ public class SoapBasicAuthenticationInterceptor implements ClientInterceptor,
   }
 
 
+  /**
+   * Intercepts the HTTP request to add the Bearer token.
+   *
+   * @param messageContext the message context
+   * @return true if the request should be processed; false if the interceptor should be skipped
+   */
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
     if (messageContext.getRequest() instanceof SaajSoapMessage soapMessage) {

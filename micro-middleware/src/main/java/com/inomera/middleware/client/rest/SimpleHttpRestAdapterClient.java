@@ -4,6 +4,9 @@ import com.inomera.integration.config.model.AdapterConfig;
 import java.util.function.Supplier;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+/**
+ * A simple HTTP based REST adapter client.
+ */
 public final class SimpleHttpRestAdapterClient extends BaseRestAdapterClient {
 
 
@@ -14,7 +17,5 @@ public final class SimpleHttpRestAdapterClient extends BaseRestAdapterClient {
   public SimpleHttpRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc) {
     super(configSupplierFunc, SimpleClientHttpRequestFactory.class);
   }
-
-  //TODO : implement native jdk http
 
 }

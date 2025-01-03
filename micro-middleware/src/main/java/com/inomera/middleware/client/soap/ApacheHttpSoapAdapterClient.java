@@ -8,6 +8,9 @@ import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
+/**
+ * An Apache HTTP based SOAP adapter client.
+ */
 public final class ApacheHttpSoapAdapterClient extends BaseSoapAdapterClient {
 
   public ApacheHttpSoapAdapterClient(Supplier<AdapterConfig> configSupplierFunc,

@@ -5,6 +5,9 @@ import java.util.function.Supplier;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.ws.transport.http.ClientHttpRequestMessageSender;
 
+/**
+ * A simple SOAP adapter client.
+ */
 public final class SimpleSoapAdapterClient extends BaseSoapAdapterClient {
 
   public SimpleSoapAdapterClient(Supplier<AdapterConfig> configSupplierFunc,

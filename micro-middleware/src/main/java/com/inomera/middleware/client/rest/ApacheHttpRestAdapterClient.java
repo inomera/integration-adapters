@@ -6,7 +6,9 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
-
+/**
+ * An Apache HTTP based REST adapter client.
+ */
 public final class ApacheHttpRestAdapterClient extends BaseRestAdapterClient {
 
   public ApacheHttpRestAdapterClient() {

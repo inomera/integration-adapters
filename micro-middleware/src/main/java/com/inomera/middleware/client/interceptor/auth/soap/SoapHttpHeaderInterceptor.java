@@ -36,6 +36,12 @@ public class SoapHttpHeaderInterceptor implements ClientInterceptor, Authenticat
     this.headers = headers;
   }
 
+  /**
+   * Intercepts the HTTP request to add the headers.
+   *
+   * @param messageContext the message context
+   * @return true if the request should be processed; false if the interceptor should be skipped
+   */
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
     if (messageContext.getRequest() instanceof SaajSoapMessage soapMessage) {

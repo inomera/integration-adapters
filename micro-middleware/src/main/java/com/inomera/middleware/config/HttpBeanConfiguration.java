@@ -5,7 +5,6 @@ import com.inomera.middleware.client.rest.ApacheHttpRestAdapterClient;
 import com.inomera.middleware.client.rest.SimpleHttpRestAdapterClient;
 import com.inomera.middleware.client.soap.ApacheHttpSoapAdapterClient;
 import com.inomera.middleware.client.soap.SimpleSoapAdapterClient;
-import java.util.function.Supplier;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +15,14 @@ import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
+import java.util.function.Supplier;
+
+/**
+ * Configuration class for HTTP beans.
+ */
 @Configuration
 public class HttpBeanConfiguration {
 
-  //todo Add auto renew beans on config update
   public static final String BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG = "apacheHttpRestClientWithConfig";
   public static final String BEAN_APACHE_HTTP_REST_CLIENT = "apacheHttpRestClient";
   public static final String BEAN_APACHE_CUSTOM_HTTP_REST_CLIENT = "apacheCustomHttpRestClient";
@@ -44,7 +47,8 @@ public class HttpBeanConfiguration {
 
   @Scope("prototype")
   @Bean(BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG)
-  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithConfig(Supplier<AdapterConfig> configSupplierFunc) {
+  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithConfig(
+      Supplier<AdapterConfig> configSupplierFunc) {
     return new ApacheHttpRestAdapterClient(configSupplierFunc);
   }
 
@@ -56,14 +60,16 @@ public class HttpBeanConfiguration {
 
   @Scope("prototype")
   @Bean(BEAN_APACHE_CUSTOM_CONFIG_HTTP_REST_CLIENT)
-  public ApacheHttpRestAdapterClient apacheCustomConfigHttpRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc,
+  public ApacheHttpRestAdapterClient apacheCustomConfigHttpRestAdapterClient(
+      Supplier<AdapterConfig> configSupplierFunc,
       HttpClient httpClient) {
     return new ApacheHttpRestAdapterClient(configSupplierFunc, httpClient);
   }
 
   @Scope("prototype")
   @Bean(BEAN_APACHE_HTTP_REST_CLIENT_WITH_REQUEST_FACTORY)
-  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithReqFactory(Supplier<AdapterConfig> configSupplierFunc,
+  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithReqFactory(
+      Supplier<AdapterConfig> configSupplierFunc,
       ClientHttpRequestFactory clientHttpRequestFactory) {
     return new ApacheHttpRestAdapterClient(configSupplierFunc, clientHttpRequestFactory);
   }

@@ -1,14 +1,7 @@
 package com.inomera.middleware.client.interceptor.log;
 
-import com.inomera.integration.config.model.LogStrategy;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serial;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import com.inomera.integration.config.model.AdapterLogging;
+import com.inomera.integration.config.model.LogStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatusCode;
@@ -18,6 +11,13 @@ import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.context.TransportContextHolder;
 import org.springframework.ws.transport.http.ClientHttpRequestConnection;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serial;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 /*
   bug case: https://github.com/spring-projects/spring-ws/issues/1054
@@ -33,10 +33,19 @@ public class SoapLoggingInterceptor extends BaseClientLoggingInterceptor impleme
 
   private static final String XML_MASK_PATTERN = "\\<${PRM}\\>(.*?)\\<\\/${PRM}\\>|${PRM}\\s*:(\\s*(\\\"(.*?)\\\"))|\\<[a-zA-Z0-9_]*:${PRM}\\>(.*?)\\<\\/[a-zA-Z0-9_]*:${PRM}\\>";
 
+  /**
+   * Create a new instance of the {@link SoapLoggingInterceptor} with the provided
+   * {@link AdapterLogging}.
+   *
+   * @param adapterLogging the adapter logging configuration
+   */
   public SoapLoggingInterceptor(AdapterLogging adapterLogging) {
     super(adapterLogging, XML_MASK_PATTERN);
   }
 
+  /**
+   * Intercepts the SOAP request to log the request and response.
+   */
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
     if (isOffOrFailure()) {
@@ -63,6 +72,9 @@ public class SoapLoggingInterceptor extends BaseClientLoggingInterceptor impleme
     return true;
   }
 
+  /**
+   * Intercepts the SOAP response to log the request and response.
+   */
   @Override
   public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
     if (isLoggingOff()) {
@@ -88,6 +100,9 @@ public class SoapLoggingInterceptor extends BaseClientLoggingInterceptor impleme
     return true;
   }
 
+  /**
+   * Intercepts the SOAP fault to log the request and response.
+   */
   @Override
   public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
     if (isLoggingOff()) {

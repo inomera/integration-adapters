@@ -2,7 +2,6 @@ package com.inomera.middleware.client.interceptor.log;
 
 import com.inomera.integration.config.model.AdapterLogging;
 import com.inomera.integration.config.model.LogStrategy;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +14,9 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
+/**
+ * Intercepts the HTTP request to log the request and response.
+ */
 @Slf4j
 public class RestLoggingInterceptor extends BaseClientLoggingInterceptor implements
     ClientHttpRequestInterceptor {
@@ -25,6 +27,9 @@ public class RestLoggingInterceptor extends BaseClientLoggingInterceptor impleme
     super(adapterLogging, JSON_MASK_PATTERN);
   }
 
+  /**
+   * Intercepts the HTTP request to log the request and response.
+   */
   @Override
   public ClientHttpResponse intercept(
       HttpRequest req, byte[] reqBody, ClientHttpRequestExecution ex) throws IOException {

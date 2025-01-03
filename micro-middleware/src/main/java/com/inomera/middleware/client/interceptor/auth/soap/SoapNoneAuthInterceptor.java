@@ -5,6 +5,9 @@ import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.context.MessageContext;
 
+/**
+ * A {@link ClientInterceptor} implementation that adds no authentication to the request.
+ */
 public class SoapNoneAuthInterceptor implements ClientInterceptor, AuthenticationProvider {
 
   @Override
