@@ -17,18 +17,7 @@ Class diagram
 
 ## Issues
 
-- add logger - OK
-- implementation of rest template for jdk 17 http client - OK
-- tcell apigw token header extension - OK
-- rule based apigw bypass and direct consume the backend services - OK
-- versioning with CI/CD pipelines @author - OK
-- add header adapterLogging with security concern - OK
-- centralize the build gradle as parametric - OK
-- code generation packaging is centralized - OK
-
 ## TODO LIST
-
-- create base IntegrationTest utility class
 
 ## Advantages
 
@@ -55,7 +44,7 @@ The second layer of the integration architecture.
 It consists of the abstractions of integration parts such as http client, spring-ws-core, javax
 validation, apache common utility libs.
 
-security, adapterLogging, client implementation
+security, logging, client implementation
 
 ## Example adapter implementation
 
@@ -77,7 +66,7 @@ One of following optionals is for generation. (Choose one of them what your comf
     Apache CXF (optional)
     AXIS (optional)
     GRADLE JAXB Plugin (Optional)    
-    JDK 17, 21
+    JDK 17
 
 Stubs are generated via apache cxf library using sh script or gradle task.
 
@@ -117,7 +106,6 @@ mirket-adapter has an example of the axis generation.
     "javax.activation:activation:${versions.javax_activation}"
 
 * 3 - gradle jaxb task(will be added) nad gradle axis (genCountryInfoService)
-
 
 Recommend third way. It is more easy and minimum dependency.
 
@@ -218,9 +206,7 @@ Let's say that we have below services.
 | Service Name               | ExampleRestService                                    | User readable name of service                 |
 | Service Type               | REST                                                  | Service api model                             |
 | Service APIs               | /example-rest/first, /example-rest/first/any-sub-path | API urls that exposed by service              |
-| Service Gw Url             | https://api-gw.ourgw.com/example-rest                 | Main url of service that accessible from GW   |
-| Service Gw SubUrl          | /example-rest                                         | Sub/context url of service that defined in GW |
-| Service Service Direct Url | https://example.servicedomain.com/example-rest        | Direct access url of service                  |
+| Service Url                | https://api-gw.ourgw.com/example-rest                 | Main url of service that accessible from GW   |
 
 #### Second Service Definition
 
@@ -229,9 +215,7 @@ Let's say that we have below services.
 | Service Name               | ExampleSoapService                                      | User readable name of service                 |
 | Service Type               | SOAP                                                    | Service api model                             |
 | Service APIs               | /example-soap/second, /example-soap/second/any-sub-path | API urls that exposed by service              |
-| Service Gw Url             | https://api-gw.ourgw.com/example-soap                   | Main url of service that accessible from GW   |
-| Service Gw SubUrl          | /example-soap                                           | Sub/context url of service that defined in GW |
-| Service Service Direct Url | https://example.servicedomain.com/example-soap          | Direct access url of service                  |
+| Service Url                | https://api-gw.ourgw.com/example-soap                   | Main url of service that accessible from GW   |
 
 First you need to create your service class. After you create it you can override default methods to
 gain some more control.
@@ -241,29 +225,29 @@ gain some more control.
 #### Creating the example service and overriding default methods:
 
 ```java
-public class ExampleRestService extends RestAdapter<EndpointConnectionConfig> {
+public class ExampleRestService extends RestAdapter<AdapterConfig> {
 
-  // User can override this method to check the response status from the body of response. Sometimes
-  // services can return an incorrect http status which means a response with a successful http
-  // status but an error inside the body.
-  @Override
-  protected AdapterStatus checkStatusDefaultIsHttp200(HttpAdapterResponse<?> httpAdapterResponse) {
-    final FirstServiceResponseContainer responseContainer = (FirstServiceResponseContainer) httpAdapterResponse.body();
-    //check the body data for status, create business failed status if there is any error.
-    if (responseContainer.checkSomeBusinessError()) {
-      return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
+    // User can override this method to check the response status from the body of response. Sometimes
+    // services can return an incorrect http status which means a response with a successful http
+    // status but an error inside the body.
+    @Override
+    protected AdapterStatus checkStatusDefaultIsHttp200(HttpAdapterResponse<?> httpAdapterResponse) {
+        final FirstServiceResponseContainer responseContainer = (FirstServiceResponseContainer) httpAdapterResponse.body();
+        //check the body data for status, create business failed status if there is any error.
+        if (responseContainer.checkSomeBusinessError()) {
+            return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
+        }
+        return AdapterStatus.createSuccess();
     }
-    return AdapterStatus.createSuccess();
-  }
 
-  //User can override this method to add endpoint level default exception handling.
-  @Override
-  protected <T> AdapterResponse<T> handleExceptionWithDefault(Exception e) {
-    if (e instanceof SomeException) {
-      //do something and return a different AdapterResponse.
+    //User can override this method to add endpoint level default exception handling.
+    @Override
+    protected <T> AdapterResponse<T> handleExceptionWithDefault(Exception e) {
+        if (e instanceof SomeException) {
+            //do something and return a different AdapterResponse.
+        }
+        return super.handleExceptionWithDefault(e);
     }
-    return super.handleExceptionWithDefault(e);
-  }
 
 }
 
@@ -277,28 +261,28 @@ integration method first.
 Use get,post,put,delete or patch method of RestAdapter to send request to the endpoint.
 
 ```java
-public class ExampleRestService extends RestAdapter<EndpointConnectionConfig> {
+public class ExampleRestService extends RestAdapter<AdapterConfig> {
 
-  public AdapterResponse firstOperation(String firstOpParam) {
-    final Map<String, String> headers = new HashMap();
-    headers.put("X-Example-Header", "random-value");
+    public AdapterResponse firstOperation(String firstOpParam) {
+        final Map<String, String> headers = new HashMap();
+        headers.put("X-Example-Header", "random-value");
 
-    return get(
-        "/first?firstOpParam=" + firstOpParam,
-        // api sub url, this will be added to endpointConfig serviceUrl(gateway or direct)
-        headers,  // headers
-        null, // request body ( null for get request)
-        FirstRestResponse.class,// response type 
-        httpAdapterResponse -> { // response customizer callback.
-          final FirstRestResponse first = httpAdapterResponse.body();
-          if (first.checkSomeBusinessError()) {
-            return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
-          }
-          // you should map your response to your model and don't use Json library classes or generated response class dependent classes in your adapter response.
-          return new AdapterResponse<>(AdapterStatus.createSuccess(),
-              first.getTheDataYouWantToReturn());
-        });
-  }
+        return get(
+                "/first?firstOpParam=" + firstOpParam,
+                // api sub url, this will be added to endpointConfig serviceUrl(gateway or direct)
+                headers,  // headers
+                null, // request body ( null for get request)
+                FirstRestResponse.class,// response type 
+                httpAdapterResponse -> { // response customizer callback.
+                    final FirstRestResponse first = httpAdapterResponse.body();
+                    if (first.checkSomeBusinessError()) {
+                        return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
+                    }
+                    // you should map your response to your model and don't use Json library classes or generated response class dependent classes in your adapter response.
+                    return new AdapterResponse<>(AdapterStatus.createSuccess(),
+                            first.getTheDataYouWantToReturn());
+                });
+    }
 
 }
 
@@ -309,29 +293,29 @@ public class ExampleRestService extends RestAdapter<EndpointConnectionConfig> {
 #### Creating the example service and overriding default methods:
 
 ```java
-public class ExampleSoapService extends SoapAdapter<EndpointConnectionConfig> {
+public class ExampleSoapService extends SoapAdapter<AdapterConfig> {
 
-  // User can override this method to check the response status from the body of response. Sometimes
-  // services can return an incorrect http status which means a response with a successful http
-  // status but an error inside the body.
-  @Override
-  protected AdapterStatus checkStatusDefaultIsHttp200(HttpAdapterResponse<?> httpAdapterResponse) {
-    final SecondServiceResponseContainer responseContainer = (SecondServiceResponseContainer) httpAdapterResponse.body();
-    //check the body data for status, create business failed status if there is any error.
-    if (responseContainer.checkSomeBusinessError()) {
-      return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
+    // User can override this method to check the response status from the body of response. Sometimes
+    // services can return an incorrect http status which means a response with a successful http
+    // status but an error inside the body.
+    @Override
+    protected AdapterStatus checkStatusDefaultIsHttp200(HttpAdapterResponse<?> httpAdapterResponse) {
+        final SecondServiceResponseContainer responseContainer = (SecondServiceResponseContainer) httpAdapterResponse.body();
+        //check the body data for status, create business failed status if there is any error.
+        if (responseContainer.checkSomeBusinessError()) {
+            return new AdapterResponse<>(AdapterStatus.createStatusFailedAsBusiness());
+        }
+        return AdapterStatus.createSuccess();
     }
-    return AdapterStatus.createSuccess();
-  }
 
-  //User can override this method to add endpoint level default exception handling.
-  @Override
-  protected <T> AdapterResponse<T> handleExceptionWithDefault(Exception e) {
-    if (e instanceof SomeException) {
-      //do something and return a different AdapterResponse.
+    //User can override this method to add endpoint level default exception handling.
+    @Override
+    protected <T> AdapterResponse<T> handleExceptionWithDefault(Exception e) {
+        if (e instanceof SomeException) {
+            //do something and return a different AdapterResponse.
+        }
+        return super.handleExceptionWithDefault(e);
     }
-    return super.handleExceptionWithDefault(e);
-  }
 
 }
 
@@ -340,201 +324,400 @@ public class ExampleSoapService extends SoapAdapter<EndpointConnectionConfig> {
 There are more detail about creation steps of example service in below. Let's create an api
 integration method first.
 
-#### How to send request to an endpoint
+
+### How To Instantiate The Http Bean Configuration For The Adapter
+
+```java
+package com.inomera.middleware.config;
+
+import com.inomera.integration.config.model.AdapterConfig;
+import com.inomera.middleware.client.rest.ApacheHttpRestAdapterClient;
+import com.inomera.middleware.client.rest.SimpleHttpRestAdapterClient;
+import com.inomera.middleware.client.soap.ApacheHttpSoapAdapterClient;
+import com.inomera.middleware.client.soap.SimpleSoapAdapterClient;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.oxm.Marshaller;
+import org.springframework.oxm.Unmarshaller;
+import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.transport.WebServiceMessageSender;
+
+import java.util.function.Supplier;
+
+/**
+ * Configuration class for HTTP beans.
+ */
+@Configuration
+public class HttpBeanConfiguration {
+
+  public static final String BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG = "apacheHttpRestClientWithConfig";
+  public static final String BEAN_APACHE_HTTP_REST_CLIENT = "apacheHttpRestClient";
+  public static final String BEAN_APACHE_CUSTOM_HTTP_REST_CLIENT = "apacheCustomHttpRestClient";
+  public static final String BEAN_APACHE_CUSTOM_CONFIG_HTTP_REST_CLIENT = "apacheCustomConfigHttpRestClient";
+  public static final String BEAN_APACHE_HTTP_REST_CLIENT_WITH_REQUEST_FACTORY = "apacheHttpRestClientWithRequestFactory";
+  public static final String BEAN_SIMPLE_HTTP_REST_CLIENT_WITH_CONFIG = "simpleRestHttpClientWithConfig";
+  public static final String BEAN_SIMPLE_HTTP_REST_CLIENT = "simpleHttpRestClient";
+  public static final String BEAN_SIMPLE_SOAP_CLIENT = "simpleSoapClient";
+  public static final String BEAN_APACHE_HTTP_SOAP_CLIENT = "apacheHttpSoapClient";
+  public static final String BEAN_APACHE_CUSTOM_HTTP_SOAP_CLIENT = "apacheCustomHttpSoapClient";
+  public static final String BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MESSAGE_SENDER = "apacheHttpSoapClientWithMessageSender";
+  public static final String BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MARSHALLER = "apacheHttpSoapClientWithMarshaller";
+  public static final String BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MARSHALLER_AND_MESSAGE_FACTORY = "apacheHttpSoapClientWithMarshallerAndMessageFactory";
+
+
+  //REST BEANS - <editor-fold desc="REST BEANS">
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_REST_CLIENT)
+  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClient() {
+    return new ApacheHttpRestAdapterClient();
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG)
+  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithConfig(
+          Supplier<AdapterConfig> configSupplierFunc) {
+    return new ApacheHttpRestAdapterClient(configSupplierFunc);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_CUSTOM_HTTP_REST_CLIENT)
+  public ApacheHttpRestAdapterClient apacheCustomHttpRestAdapterClient(HttpClient httpClient) {
+    return new ApacheHttpRestAdapterClient(httpClient);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_CUSTOM_CONFIG_HTTP_REST_CLIENT)
+  public ApacheHttpRestAdapterClient apacheCustomConfigHttpRestAdapterClient(
+          Supplier<AdapterConfig> configSupplierFunc,
+          HttpClient httpClient) {
+    return new ApacheHttpRestAdapterClient(configSupplierFunc, httpClient);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_REST_CLIENT_WITH_REQUEST_FACTORY)
+  public ApacheHttpRestAdapterClient apacheHttpRestAdapterClientWithReqFactory(
+          Supplier<AdapterConfig> configSupplierFunc,
+          ClientHttpRequestFactory clientHttpRequestFactory) {
+    return new ApacheHttpRestAdapterClient(configSupplierFunc, clientHttpRequestFactory);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_SIMPLE_HTTP_REST_CLIENT)
+  public SimpleHttpRestAdapterClient simpleHttpRestAdapterClient() {
+    return new SimpleHttpRestAdapterClient();
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_SIMPLE_HTTP_REST_CLIENT_WITH_CONFIG)
+  public SimpleHttpRestAdapterClient simpleHttpRestAdapterClientWithConfig(
+          Supplier<AdapterConfig> configSupplierFunc) {
+    return new SimpleHttpRestAdapterClient(configSupplierFunc);
+  }
+
+  //SOAP BEANS - <editor-fold desc="SOAP BEANS">
+  @Scope("prototype")
+  @Bean(BEAN_SIMPLE_SOAP_CLIENT)
+  public SimpleSoapAdapterClient simpleSoapAdapterClient(
+          Supplier<AdapterConfig> configSupplierFunc, String marshallerContextPath) {
+    return new SimpleSoapAdapterClient(configSupplierFunc, marshallerContextPath);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_SOAP_CLIENT)
+  public ApacheHttpSoapAdapterClient apacheHttpSoapAdapterClient(
+          Supplier<AdapterConfig> configSupplierFunc,
+          String marshallerContextPath) {
+    return new ApacheHttpSoapAdapterClient(configSupplierFunc, marshallerContextPath);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_CUSTOM_HTTP_SOAP_CLIENT)
+  public ApacheHttpSoapAdapterClient apacheCustomHttpSoapAdapterClient(
+          Supplier<AdapterConfig> configSupplierFunc,
+          HttpClient httpClient, String marshallerContextPath) {
+    return new ApacheHttpSoapAdapterClient(configSupplierFunc,
+            httpClient, marshallerContextPath);
+  }
+
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MESSAGE_SENDER)
+  public ApacheHttpSoapAdapterClient apacheHttpSoapAdapterClientWithSender(
+          Supplier<AdapterConfig> configSupplierFunc, WebServiceMessageSender webServiceMessageSender,
+          String marshallerContextPath) {
+    return new ApacheHttpSoapAdapterClient(configSupplierFunc, webServiceMessageSender,
+            marshallerContextPath);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MARSHALLER)
+  public ApacheHttpSoapAdapterClient apacheHttpSoapAdapterClientWithMarshaller(
+          Supplier<AdapterConfig> configSupplierFunc,
+          WebServiceMessageSender webServiceMessageSender,
+          Marshaller marshaller,
+          Unmarshaller unmarshaller,
+          String marshallerContextPath) {
+    return new ApacheHttpSoapAdapterClient(configSupplierFunc,
+            webServiceMessageSender, marshaller, unmarshaller, marshallerContextPath);
+  }
+
+  @Scope("prototype")
+  @Bean(BEAN_APACHE_HTTP_SOAP_CLIENT_WITH_MARSHALLER_AND_MESSAGE_FACTORY)
+  public ApacheHttpSoapAdapterClient apacheHttpSoapAdapterClientWitMarshallAndMsgFactory(
+          Supplier<AdapterConfig> configSupplierFunc,
+          WebServiceMessageSender webServiceMessageSender,
+          Marshaller marshaller,
+          Unmarshaller unmarshaller,
+          WebServiceMessageFactory webServiceMessageFactory,
+          String marshallerContextPath) {
+    return new ApacheHttpSoapAdapterClient(configSupplierFunc,
+            webServiceMessageSender, marshaller, unmarshaller, webServiceMessageFactory,
+            marshallerContextPath);
+  }
+
+
+}
+
+
+```
+
+
+### Example Service Bean Configuration
+
 
 Use get,post,put,delete or patch method of RestAdapter to send request to the endpoint.
 
 ```java
-public class ExampleSoapService extends SoapAdapter<EndpointConnectionConfig> {
+package com.inomera.mirketadapter;
 
-  public AdapterResponse secondOperation(String firstOpParam) {
-    final Map<String, String> headers = new HashMap();
-    headers.put("X-Example-Header", "random-value");
+import static com.inomera.middleware.config.HttpBeanConfiguration.BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG;
+import static com.inomera.middleware.config.HttpBeanConfiguration.BEAN_APACHE_HTTP_SOAP_CLIENT;
+import static com.inomera.telco.commons.config.spring.BeanNames.BEAN_CONFIGURATION_HOLDER;
 
-    return executeInternalWithCustomHandler(
-        headers, // request headers
-        new ListOfContinentsByName(),
-        // request body ( this can be created by your soap service's ObjectFactory depending on implementation.)
-        HttpMethod.POST,// In a soap request you need to use either POST or GET http method. 
-        ListOfContinentsByNameResponse.class, // response type
-        (httpAdapterResponse) -> { // optional response customizer
-          //do any customization in here for your adapter response
-          var yourResponseDto = httpAdapterResponse.body();// you should map your response to your model and don't use Soap library classes or generated response class dependent classes in your adapter response. 
-          return new AdapterResponse<>(AdapterStatus.createSuccess(), yourResponseDto);
-        });
+import com.inomera.adapter.config.bridge.DynamicAdapterConfigDataBridgeSupplierHandler;
+import com.inomera.integration.config.AdapterConfigDataSupplier;
+import com.inomera.integration.config.model.AdapterConfig;
+import com.inomera.middleware.client.rest.ApacheHttpRestAdapterClient;
+import com.inomera.middleware.client.soap.ApacheHttpSoapAdapterClient;
+import com.inomera.mirketadapter.rest.MirketAdapter;
+import com.inomera.mirketadapter.rest.MirketAdapterImpl;
+import com.inomera.mirketadapter.soap.CountryAdapter;
+import com.inomera.mirketadapter.soap.CountryAdapterImpl;
+import com.inomera.telco.commons.config.ConfigurationHolder;
+import com.inomera.telco.commons.lang.Assert;
+import generated.countryinfoservice.CountryInfoService;
+import java.util.function.Supplier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class MirketAdapterBeanConfiguration {
+
+  private static final String CONFIG_MIRKET_KEY = "config.adapter.mirket.v1";
+  private static final String CONFIG_COUNTRY_KEY = "config.adapter.country.v1";
+
+  final ApplicationContext applicationContext;
+
+  public MirketAdapterBeanConfiguration(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
   }
 
+  @Bean
+  @ConditionalOnClass(AdapterConfigDataSupplier.class)
+  public MirketAdapter mirketAdapter(AdapterConfigDataSupplier adapterConfigDataSupplier) {
+    Supplier<AdapterConfig> configSupplierFunc = () -> adapterConfigDataSupplier.getConfigV1(
+            CONFIG_MIRKET_KEY);
+    final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = (ApacheHttpRestAdapterClient) applicationContext.getBean(
+            BEAN_APACHE_HTTP_REST_CLIENT_WITH_CONFIG, configSupplierFunc);
+    Assert.notNull(apacheHttpRestAdapterClient, "Mirket ApacheHttpRestAdapterClient cannot be NULL");
+    return new MirketAdapterImpl(configSupplierFunc, apacheHttpRestAdapterClient);
+  }
+
+  @Bean
+  @ConditionalOnClass(AdapterConfigDataSupplier.class)
+  public CountryAdapter countryAdapter(AdapterConfigDataSupplier adapterConfigDataSupplier) {
+    Supplier<AdapterConfig> configSupplierFunc = () -> adapterConfigDataSupplier.getConfigV1(
+            CONFIG_COUNTRY_KEY);
+
+    final ApacheHttpSoapAdapterClient soapAdapterClient = (ApacheHttpSoapAdapterClient) applicationContext.getBean(
+            BEAN_APACHE_HTTP_SOAP_CLIENT, configSupplierFunc, CountryInfoService.class.getPackage().getName());
+    Assert.notNull(soapAdapterClient, "Country ApacheHttpSoapAdapterClient cannot be NULL");
+    return new CountryAdapterImpl(configSupplierFunc, soapAdapterClient);
+  }
+
+  @Bean
+  @ConditionalOnClass(ConfigurationHolder.class)
+  public AdapterConfigDataSupplier adapterConfigDataSupplier() {
+    final ConfigurationHolder configurationHolder = (ConfigurationHolder) applicationContext.getBean(
+            BEAN_CONFIGURATION_HOLDER);
+    Assert.notNull(configurationHolder, "ConfigurationHolder cannot be NULL");
+    return new DynamicAdapterConfigDataBridgeSupplierHandler(configurationHolder);
+  }
 }
+
 
 ``` 
 
-### How To Instantiate The Service
+### Adapter General Usage Concerns
 
-```java
-import static config.com.inomera.middleware.BeanConfig.BEAN_APACHE_HTTP_REST_CLIENT;
-import static config.com.inomera.middleware.BeanConfig.BEAN_APACHE_HTTP_SOAP_CLIENT;
+1. **Separate Models for Generated Code and MS Usage**  
+   Models generated from external sources and those used within the microservice (MS) must be distinct.
+  - For instance, request/response objects specific to the adapter should be created by developers within the adapter package.
+  - Generated models (e.g., from WSDL/XSD) should not be directly used within the MS.
 
-@Configuration
-public class BeanConfig {
+2. **Naming Standards for Adapter Models**
+  - Models for the adapter must adhere to naming conventions. Any naming inconsistencies in the generated models must be corrected within the adapter layer.
+  - Java naming conventions should be followed, and special characters should be avoided in field names.
 
-    @Autowire
-    ApplicationContext applicationContext;
+3. **Adapter Abstraction and Customer Interfaces**
+  - Beside the Soap/Rest Adapter (abstraction), a customer-specific interface for the microservice should be created.
+  - For reference, see sample projects like `example/ms-example`.
+
+4. **Constructor Consistency in Implementation Classes**
+  - Ensure that all capabilities provided by constructors in the `SoapAdapter` class are implemented in the derived class.
+  - These should ideally be achieved with all constructors.
+
+5. **Integration Tests**
+  - Comprehensive integration tests must be included.
+
+6. **WSDL and XSD Files**
+  - WSDL and XSD files must be placed under the `resources` directory.
+  - Avoid referencing WSDL URLs directly in `build.gradle` files.
+
+7. **Generated Files Placement**
+  - Files generated for SOAP should be placed under a dedicated package with a `generated` prefix.
+  - Example: Include these files outside the source code, within a package like `generated.<package_name>`.
+  - This step is optional but ensures consistency and separation of concerns.
 
 
-    //REST SERVICES
-    //Chose one of the three ways.
+### Dynamic Config Definitions
 
-    @Bean//FIRST WAY
-    public ExampleRestService exampleRestServiceWithoutGateway()
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, InstantiationException {
+Common Config
 
-        //You can use any preconfigured bean from BeanConfig of adapter library.
-        //You can use any implementation of HttpAdapterClient using any of its constructors.
-        final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = (ApacheHttpRestAdapterClient) applicationContext.getBean(
-                BEAN_APACHE_HTTP_REST_CLIENT, apacheHttpClient());
-        return new ExampleRestService(mirketAdapterEndpointConfig(), apacheHttpRestAdapterClient);// add this constructor to your implementation.
+```json
+{
+  "key": "config.adapter.common.v1",
+  "adapterProperties": {
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+      ],
+      "nonLoggingFields": [
+      ]
+    },
+    "headers": {
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 180000,
+      "maxConnections": 10,
+      "maxConnPerRoute": 10,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "auth": {
+      "type": "NONE"
     }
-
-    @Bean//SECOND WAY
-    public ExampleRestService exampleRestServiceWithoutGateway() {
-        //You can create a clientHttpRequestFactory 3 different ways and provide it as Rest or Soap Adapter constructor parameter.
-        ClientHttpRequestFactory clientHttpRequestFactory = ClientHttpRequestFactories.get(ClientHttpRequestFactorySettings.DEFAULTS);
-        ClientHttpRequestFactory clientHttpRequestFactory = ClientHttpRequestFactories.get(
-                HttpComponentsClientHttpRequestFactory.class,// you can use any implementation of ReqFactory. This is a spring implementation but you can implement yours.
-                ClientHttpRequestFactorySettings
-                        .DEFAULTS
-                        .withConnectTimeout(Duration.of(60, ChronoUnit.SECONDS))
-        );
-        ClientHttpRequestFactory clientHttpRequestFactory = new ClientHttpRequestFactory() {
-            @Override
-            public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
-                //custom implementation.
-            }
-        };
-
-        return new ExampleRestService(mirketAdapterEndpointConfig(), clientHttpRequestFactory);// add this constructor to your implementation.
-    }
-
-    @Bean//THIRD WAY
-    public ExampleRestService exampleRestServiceWithoutGateway() {
-        //You can create a RequestFactoryConfig and provide standard configurations, it creates a ClientHttpRequestFactory with these configs.
-        RequestFactoryConfig requestFactoryConfig = new RequestFactoryConfig();
-        requestFactoryConfig.setRequestTimeout(Duration.of(60, ChronoUnit.SECONDS));
-        requestFactoryConfig.setConnectionTimeout(Duration.of(60, ChronoUnit.SECONDS));
-        requestFactoryConfig.setSslBundle(SslBundle.of(SslStoreBundle.NONE));
-        return new ExampleRestService(mirketAdapterEndpointConfig(), requestFactoryConfig);// add this constructor to your implementation.
-    }
-
-    //Create your service with gateway config
-    @Bean//FIRST WAY
-    public ExampleRestService exampleRestServiceWithGateway(
-            GwTokenProvider gwTokenProvider// Since you have created GatewayConfig, this bean will be created inside library automatically.
-    )
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, InstantiationException {
-        final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = (ApacheHttpRestAdapterClient) applicationContext.getBean(BEAN_APACHE_HTTP_REST_CLIENT, apacheHttpClient());
-        return new ExampleRestService(mirketAdapterEndpointConfig(), apacheHttpRestAdapterClient, gwTokenProvider);// add this constructor to your implementation. provide this to BaseAdapter constructor. 
-    }
-
-    //SOAP SERVICES
-
-    @Bean
-    public ExampleSoapService exampleSoapService()
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, InstantiationException {
-        EndpointConnectionConfig endpointConnectionConfig = exampleSoapServiceEndpointConfig();
-        final ApacheHttpSoapAdapterClient soapAdapterClient = (ApacheHttpSoapAdapterClient) applicationContext.getBean(
-                BEAN_APACHE_HTTP_SOAP_CLIENT, "com.turkcell.generated.class.package",
-                endpointConnectionConfig, apacheHttpClient());
-        return new ExampleSoapService(endpointConnectionConfig, soapAdapterClient);
-    }
-    //TODO ADD OTHER WAYS FOR SOAP SERVICE INITIALIZATION.
-
-
-    //General configs
-    @Bean
-    public EndpointConnectionConfig exampleRestServiceEndpointConfig() {
-        final EndpointConnectionConfig endpointConnectionConfig = new EndpointConnectionConfig();
-        endpointConnectionConfig.setServiceDirectUrl("https://example.servicedomain.com/example-rest");
-        endpointConnectionConfig.setGatewayUrlSubPath("/example-rest ");
-        endpointConnectionConfig.setUser("user");
-        endpointConnectionConfig.setPassword("password");
-        endpointConnectionConfig.setUseGatewayIfEnabled(true);// disable/enable this in here.
-        return endpointConnectionConfig;
-    }
-
-    @Bean
-    public EndpointConnectionConfig exampleSoapServiceEndpointConfig() {
-        final EndpointConnectionConfig endpointConnectionConfig = new EndpointConnectionConfig();
-        endpointConnectionConfig.setServiceDirectUrl("https://example.servicedomain.com/example-soap");
-        endpointConnectionConfig.setGatewayUrlSubPath("/example-soap");
-        endpointConnectionConfig.setUser("user");
-        endpointConnectionConfig.setPassword("password");
-        endpointConnectionConfig.setUseGatewayIfEnabled(true);// disable/enable this in here.
-        return endpointConnectionConfig;
-    }
-
-    @Bean
-    public GatewayConfig gatewayConfig() {
-        GatewayConfig gatewayConfig = GatewayConfig.updateAndGetInstance(
-                "https://api-gw.ourgw.com",
-                "username", "password", "clientId", "clientSecret");
-
-        gatewayConfig.setAuthHeaderName("X-Custom-Auth-Header");
-        gatewayConfig.setGWEnabled(true);
-        return gatewayConfig;
-    }
-
-    @Bean
-    public HttpClient apacheHttpClient()
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        SSLContext sslContext = SSLContextBuilder.create()
-                .loadTrustMaterial(null, new TrustSelfSignedStrategy())  // <--- accepts each certificate
-                .build();
-
-        Registry<ConnectionSocketFactory> socketRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register(URIScheme.HTTPS.getId(),
-                        new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
-                //.register(URIScheme.HTTP.getId(), new PlainConnectionSocketFactory())
-                .build();
-
-        HttpClient httpClient = HttpClientBuilder.create()
-                .setConnectionManager(new PoolingHttpClientConnectionManager(socketRegistry))
-                .setConnectionManagerShared(true)
-                .build();
-        return httpClient;
-    }
+  }
 }
-
 ```
 
-## DC-Adapters geliştirmelerinde genel standartlarımız
+Rest Adapter Config
 
-Öncelikle beklentimiz Mikroservis Kod Standartları dokumantasyonunu inceleyerek kod geliştirmelerine başlanılması, geliştirmeler yapılırken bu standartlara dikkat edilmesi.( Kod standartları ->https://confluence.turkcell.com.tr/pages/viewpage.action?pageId=126674602 )
+```json
+{
+  "key": "config.adapter.mirket.v1",
+  "adapterProperties": {
+    "auth": {
+      "type": "BEARER",
+      "username": "username",
+      "password": "password",
+      "url": "https://www.googleapis.com/oauth2/v4/token",
+      "grantType": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      "ttl": 3600000,
+      "scope": "https://www.googleapis.com/auth/cloud-platform",
+      "clientId": "client_id",
+      "clientSecret": "client_secret",
+      "contentType": "application/x-www-form-urlencoded",
+      "accept": "application/json",
+      "tokenJsonPath": "$.access_token"
+    },
+    "headers": {
+      "X-GW-TOKEN": ""
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 60000,
+      "maxConnections": 50,
+      "maxConnPerRoute": 50,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+        "Authorization"
+      ],
+      "nonLoggingFields": [
+        "file",
+        "content"
+      ]
+    },
+    "url": "https://api.mirket.inomera.com/v10/first"
+  }
+}
+```
 
-### MS Adapter Modellemeler
- * Generate edilen model ile MS in kullanacağı modeller farklı olmalı. (Detay verecek olursak, MS içinde adapter içinde geliştiricinin oluşturduğu adapter request / response nesneleri olmalı, generated paketler MS içinde kullanılmamalı
- * Bizim adapter için oluşturduğumuz modeller isim standartlarına uygun olmalı. Altyapıda yapılmış isimlendirme hataları adapter ımızda düzenltilmiş olmalıdır. (Örneğin IsXyzDTO, IsXyzMapper altyapı modeli : IsXyz, “_” gibi özel karakterlerle DTO içinde field olmamalı, DTO field isimleri uygun olup getXyzProduct gibi yüklemle CRUD yüklemleriyle başlayanlardan kaçınmalıyız. 
- * DTO class ve field isimlendirmelerinde microservice isimlendirme standartlarına dikkat edilmelidir. (Code standartları 2.madde)
+Soap Adapter Config
 
-### Model Dönüşümleri
- * Kompleksiteye bağlı olarak Java obje dönüşümü veya Mapstruct kullanılabilir. (Otomatik dönüşümlerin kolaylığı, NPE gibi durumların önüne geçmek adına Mapstruct tavsiye edilir)
- * MapStruct kullanımı yapıldığı durumlarda her bir N adet Req-RespDTO için ayrı ayrı Mapper oluşturulmamalıdır. Mapperlar belli bir domain kuralına göre gruplanabilir.
- * Servislerde Mapperları autowired etmekten kaçınıp Instance ı ile işlem yapılmalı. Her bir Req-Resp DTO için mapper oluşturulduğunda 2*N kadar mapper servise autowired olmamalı. DI ların da bir limiti olmalıdır.
- 
-### Configuration
- * Soap/Rest Adapter (abstraction) yanına MS için kullanılacak customer interface oluşturulmalıdır.
-Örnek : CountryAdapterImpl extends SoapAdapter implements CountryAdapter
-Örnek projeler :
-https://stash.turkcell.com.tr/git/projects/SH200711/repos/dc-adapters/browse/netflow-adapter/src/main/java/com/turkcell/dcs/netflow
-https://stash.turkcell.com.tr/git/projects/SH200711/repos/dc-adapters/browse/atom-adapter/src/main/java/com/turkcell/dcs/atom
- * SoapAdapter’da bulunan constructorlarla gelen yeteneklerin tamamının impl. classında olmasına dikkat edilebilir. (4 constructor ile bu yetenekler oluşturulmalı)
- * Entegrasyon testleri olmalıdır.
- * Wsdl, xsd dosyaları resource altında olmalıdır, build gradle larda altyapı wsdl url leri olmamalıdır.  
- * Generate edilen dosyaları fixed olarak (SOAP için) source kod dışında generated prefixli bir paket altına atıyoruz. (nice to have bir işlem sadece bütünlük içindir)
+```json
+{
+  "key": "config.adapter.country.v1",
+  "adapterProperties": {
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+        "Authorization",
+        "X-GW-TOKEN"
+      ],
+      "nonLoggingFields": [
+        "file",
+        "content"
+      ]
+    },
+    "url": "http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso",
+    "headers": {
+      "SOAPAction": "CountryNameResponse"
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 60000,
+      "maxConnections": 50,
+      "maxConnPerRoute": 50,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "auth": {
+      "type": "BASIC",
+      "username": "inomera",
+      "password": "inomera"
+    }
+  }
+}
+```
 
-### Exception Handling
- * İçeride yakalanan exceptionlar loglanmalı, uygun exception türlerine göre çıktılar olmalıdır.
- * Bazı soap istekler response da hatayı dönmek yerine ilgili method bazında custom request veya business exception atabilmektedir. Bu hata tiplerine yakalanarak özel olarak çıkılmalı yutulmamalıdır.
- * Loglama stratejisi başta belirlenip ona göre konfigüre edilmelidir.
 
-### Admin Cms tanımları
- * Admin cms tanımları operasyonla ve integration takımıyla konuşularak uygun formatta olmalıdır
