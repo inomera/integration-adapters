@@ -19,6 +19,9 @@ High Level Diagram
 
 ## TODO LIST
 
+ - Add ssl forge
+ - Add maven central repository (snapshot and release)
+
 ## Advantages
 
 * Data Adapter Response Model pattern utilization (re-usability)
