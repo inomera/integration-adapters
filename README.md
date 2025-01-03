@@ -11,9 +11,9 @@ http rest/soap protocol complexities.
 
 ## Architecture
 
-Class diagram
+High Level Diagram
 
-![Class diagram](files/diagrams/integration-adapters-class-diagram.png)
+![Components](files/diagrams/integration-adapters-v1.png)
 
 ## Issues
 
