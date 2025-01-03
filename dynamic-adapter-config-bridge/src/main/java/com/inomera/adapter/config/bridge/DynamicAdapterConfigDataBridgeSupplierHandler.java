@@ -47,37 +47,6 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
     }
   }
 
-  private Auth getAuthCredentials(Map<String, Object> authMap) {
-    String authType = (String) authMap.get("type");
-    switch (AuthType.valueOf(authType)) {
-      case BASIC -> {
-        return new BasicAuthCredentials((String) authMap.get("username"),
-            (String) authMap.get("password"));
-      }
-      case HEADER -> {
-        return new AuthHeadersCredentials((Map<String, Object>) authMap.get("headers"));
-      }
-      case BEARER -> {
-        return new BearerTokenCredentials.Builder()
-            .url((String) authMap.get("url"))
-            .scope((String) authMap.get("scope"))
-            .username((String) authMap.get("username"))
-            .password((String) authMap.get("password"))
-            .clientId((String) authMap.get("clientId"))
-            .clientSecret((String) authMap.get("clientSecret"))
-            .grantType((String) authMap.get("grantType"))
-            .ttl(Long.parseLong(authMap.get("ttl").toString()))
-            .contentType((String) authMap.get("contentType"))
-            .accept((String) authMap.get("accept"))
-            .tokenJsonPath((String) authMap.get("tokenJsonPath"))
-            .build();
-      }
-      default -> {
-        return new NoneAuth();
-      }
-    }
-  }
-
   @Override
   public <T> T getConfig(String key, Class<T> classToDeserialize) {
     final Object result = switch (classToDeserialize.getSimpleName()) {
@@ -125,6 +94,38 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
               (List<Enum>) defaultValue)));
       default -> configurationHolder.getJsonListProperty(key, classToDeserialize, defaultValue);
     };
+  }
+
+
+  private Auth getAuthCredentials(Map<String, Object> authMap) {
+    String authType = (String) authMap.get("type");
+    switch (AuthType.valueOf(authType)) {
+      case BASIC -> {
+        return new BasicAuthCredentials((String) authMap.get("username"),
+            (String) authMap.get("password"));
+      }
+      case HEADER -> {
+        return new AuthHeadersCredentials((Map<String, Object>) authMap.get("headers"));
+      }
+      case BEARER -> {
+        return new BearerTokenCredentials.Builder()
+            .url((String) authMap.get("url"))
+            .scope((String) authMap.get("scope"))
+            .username((String) authMap.get("username"))
+            .password((String) authMap.get("password"))
+            .clientId((String) authMap.get("clientId"))
+            .clientSecret((String) authMap.get("clientSecret"))
+            .grantType((String) authMap.get("grantType"))
+            .ttl(Long.parseLong(authMap.get("ttl").toString()))
+            .contentType((String) authMap.get("contentType"))
+            .accept((String) authMap.get("accept"))
+            .tokenJsonPath((String) authMap.get("tokenJsonPath"))
+            .build();
+      }
+      default -> {
+        return new NoneAuth();
+      }
+    }
   }
 
   private AdapterConfig mergeWithCommonConfigIfNotSetInAdapterConfig(AdapterConfig adapterConfig) {
