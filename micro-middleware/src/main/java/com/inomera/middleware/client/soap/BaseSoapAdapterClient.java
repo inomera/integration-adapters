@@ -1,5 +1,7 @@
 package com.inomera.middleware.client.soap;
 
+import static org.springframework.boot.ssl.SslBundle.DEFAULT_PROTOCOL;
+
 import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.client.HttpAdapterClient;
 import com.inomera.integration.client.HttpSoapAdapterClient;
@@ -7,6 +9,7 @@ import com.inomera.integration.config.model.AdapterConfig;
 import com.inomera.integration.config.model.AuthHeadersCredentials;
 import com.inomera.integration.config.model.BasicAuthCredentials;
 import com.inomera.integration.config.model.BearerTokenCredentials;
+import com.inomera.integration.config.model.HttpClientProperties;
 import com.inomera.integration.constant.Status;
 import com.inomera.integration.fault.AdapterAuthenticationException;
 import com.inomera.integration.fault.AdapterException;
@@ -19,8 +22,12 @@ import com.inomera.middleware.client.interceptor.auth.soap.SoapBasicAuthenticati
 import com.inomera.middleware.client.interceptor.auth.soap.SoapHttpHeaderInterceptor;
 import com.inomera.middleware.client.interceptor.auth.soap.SoapNoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.SoapLoggingInterceptor;
+import com.inomera.middleware.util.SslBundleUtils;
+import com.inomera.ssl.MultiTrustSSLContextBuilder;
 import jakarta.xml.bind.JAXBElement;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +36,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.net.ssl.SSLContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ssl.DefaultSslBundleRegistry;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundleKey;
+import org.springframework.boot.ssl.SslManagerBundle;
+import org.springframework.boot.ssl.SslOptions;
+import org.springframework.boot.ssl.SslStoreBundle;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.webservices.client.HttpWebServiceMessageSenderBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -105,22 +120,25 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
     Assert.notNull(requestFactoryClass, "requestFactoryClass cannot be null");
     Assert.notNull(marshallerContextPath, "marshallerContextPath cannot be null");
     AdapterConfig adapterConfig = configSupplierFunc.get();
-    //TODO : AdapterConfig should be checked for null or not
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
 
     this.configSupplierFunc = configSupplierFunc;
-    this.webServiceMessageSender = new HttpWebServiceMessageSenderBuilder().setConnectTimeout(
-            Duration.ofMillis(adapterConfig.getAdapterProperties().getHttp().getConnectTimeout()))
-        // duplicate config is because of a spring bug(closed) -> https://github.com/spring-projects/spring-boot/issues/35658
-        .setReadTimeout(
-            Duration.ofMillis(adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
+    HttpClientProperties http = adapterConfig.getAdapterProperties().getHttp();
+    // duplicate config is because of a spring bug(closed) -> https://github.com/spring-projects/spring-boot/issues/35658
+    HttpWebServiceMessageSenderBuilder senderBuilder = new HttpWebServiceMessageSenderBuilder();
+    Duration connectTimeout = Duration.ofMillis(http.getConnectTimeout());
+    Duration readTimeout = Duration.ofMillis(http.getRequestTimeout());
+    final SslBundle sslBundle = SslBundleUtils.createSslBundle(http, adapterConfig.getUrl());
+    this.webServiceMessageSender = new HttpWebServiceMessageSenderBuilder()
+        .setConnectTimeout(connectTimeout)
+        .setReadTimeout(readTimeout)
+        .sslBundle(sslBundle)
+        .requestFactory(
+            (settings -> ClientHttpRequestFactories.get(requestFactoryClass,
+                settings.withConnectTimeout(connectTimeout)
+                    .withReadTimeout(readTimeout)
+                    .withSslBundle(sslBundle))))
         .build();
-    //TODO: ssl forge lib added
-//        .sslBundle(requestFactoryConfig.getSslBundle()).requestFactory(
-//            (settings -> ClientHttpRequestFactories.get(requestFactoryClass,
-//                settings.withConnectTimeout(requestFactoryConfig.getConnectionTimeout())
-//                    .withReadTimeout(requestFactoryConfig.getRequestTimeout())
-//                    .withSslBundle(requestFactoryConfig.getSslBundle())))).build();
     this.marshallerContextPath = marshallerContextPath;
   }
 
@@ -281,7 +299,6 @@ public abstract class BaseSoapAdapterClient extends WebServiceGatewaySupport imp
     HeadersAwareSenderWebServiceConnection connection = (HeadersAwareSenderWebServiceConnection) context.getConnection();
     //TODO: custom or cross-cut interceptors should be added dynamic configuration
     //runs before the request is sent.
-
     if (httpAdapterRequest.getHeaders() != null) {
       for (Map.Entry<String, String> header : httpAdapterRequest.getHeaders().entrySet()) {
         try {

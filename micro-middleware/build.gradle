@@ -9,13 +9,7 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
-  maven {
-    credentials {
-      username 'telco-maven-read-only'
-      password '504B4CFAD88E48E532BFD939B22C5B3A'
-    }
-    url 'https://nexus.telco.inomera.com/repository/maven-releases'
-  }
+  mavenLocal()
   mavenCentral()
 }
 

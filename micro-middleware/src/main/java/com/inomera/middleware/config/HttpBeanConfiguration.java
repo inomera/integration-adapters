@@ -5,6 +5,7 @@ import com.inomera.middleware.client.rest.ApacheHttpRestAdapterClient;
 import com.inomera.middleware.client.rest.SimpleHttpRestAdapterClient;
 import com.inomera.middleware.client.soap.ApacheHttpSoapAdapterClient;
 import com.inomera.middleware.client.soap.SimpleSoapAdapterClient;
+import java.util.function.Supplier;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +15,6 @@ import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.transport.WebServiceMessageSender;
-
-import java.util.function.Supplier;
 
 /**
  * Configuration class for HTTP beans.

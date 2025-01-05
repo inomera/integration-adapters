@@ -19,12 +19,7 @@ import com.inomera.middleware.client.interceptor.auth.rest.RestHttpHeaderInterce
 import com.inomera.middleware.client.interceptor.auth.rest.RestNoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.RestLoggingInterceptor;
 import com.inomera.middleware.util.HeaderUtils;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
+import com.inomera.middleware.util.SslBundleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
@@ -46,6 +41,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Base rest adapter implementation of {@link HttpAdapterClient}. Uses spring rest template as
@@ -75,13 +77,18 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     Assert.notNull(configSupplierFunc, "AdapterConfig cannot be null");
     Assert.notNull(clientHttpRequestFactory, "ClientHttpRequestFactory cannot be null");
     AdapterConfig adapterConfig = configSupplierFunc.get();
-    //TODO : AdapterConfig should be checked for null or not
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
     List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
         adapterConfig);
 
     this.restTemplate = new RestTemplateBuilder()
+        .setConnectTimeout(Duration.ofMillis(
+            adapterConfig.getAdapterProperties().getHttp().getConnectTimeout()))
+        .setReadTimeout(Duration.ofMillis(
+            adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
         .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory))
+        .setSslBundle(SslBundleUtils.createSslBundle(adapterConfig.getAdapterProperties().getHttp(),
+            adapterConfig.getUrl()))
         .interceptors(interceptors)
         .build();
     this.restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
@@ -92,7 +99,6 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     Assert.notNull(configSupplierFunc, "AdapterConfig cannot be null");
     Assert.notNull(clientHttpRequestFactoryType, "clientHttpRequestFactoryType cannot be null");
     AdapterConfig adapterConfig = configSupplierFunc.get();
-    //TODO : AdapterConfig should be checked for null or not
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
     List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
         adapterConfig);
@@ -104,7 +110,9 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
                         adapterConfig.getAdapterProperties().getHttp().getConnectTimeout()))
                     .withReadTimeout(Duration.ofMillis(
                         adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
-//                    .withSslBundle(adapterConfig.getAdapterProperties().getHttp().isSkipSsl()) //TODO : SSLBundle with ssl forge library
+                    .withSslBundle(
+                        SslBundleUtils.createSslBundle(adapterConfig.getAdapterProperties()
+                            .getHttp(), adapterConfig.getUrl()))
             )))
         .interceptors(interceptors)
         .build();
@@ -193,9 +201,7 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
       HttpAdapterRequest httpAdapterRequest
   ) {
     if (restClientException instanceof HttpClientErrorException e &&
-        HttpStatus.FORBIDDEN.equals(e.getStatusCode()) &&
-        e.getResponseBodyAsString().startsWith("Invalid Token")
-    ) {
+        HttpStatus.FORBIDDEN.equals(e.getStatusCode())) {
       return new AdapterAuthenticationException(e, AdapterStatus.createStatusFailedAsTechnical(e));
     } else if (restClientException instanceof ResourceAccessException ra) {
       if (ra.getCause() instanceof HttpMessageConversionException ha) {

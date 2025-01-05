@@ -1,5 +1,7 @@
 package com.inomera.middleware.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -7,7 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class HeaderUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class HeaderUtils {
 
   public static Map<String, List<String>> convertToListMap(Map<String, String> headers) {
     return headers.entrySet().stream()
