@@ -3,7 +3,7 @@ plugins {
   id 'maven-publish'
 }
 
-group = 'com.inomera.adapter.config.loader'
+group = 'com.inomera.integration.ext'
 version = project.file("VERSION").text.trim()
 
 sourceCompatibility = JavaVersion.VERSION_17

@@ -3,7 +3,7 @@ plugins {
   id "maven-publish"
 }
 
-group "com.inomera.middleware"
+group "com.inomera.integration"
 version = project.file("VERSION").text.trim()
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
