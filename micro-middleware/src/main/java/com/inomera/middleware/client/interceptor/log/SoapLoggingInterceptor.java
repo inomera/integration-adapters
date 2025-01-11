@@ -45,6 +45,10 @@ public class SoapLoggingInterceptor extends BaseClientLoggingInterceptor impleme
 
   /**
    * Intercepts the SOAP request to log the request and response.
+   *
+   * @param messageContext contains the outgoing request message
+   * @return
+   * @throws WebServiceClientException
    */
   @Override
   public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {

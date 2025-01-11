@@ -1,11 +1,10 @@
 package com.inomera.middleware.client.interceptor.log;
 
+import com.inomera.integration.config.model.AdapterLogging;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.inomera.integration.config.model.AdapterLogging;
-import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.CollectionUtils;
@@ -97,6 +96,7 @@ public class BaseClientLoggingInterceptor {
 
   /**
    * Context of http request-response log
+   *
    * @param uri
    * @param requestBody
    * @param responseBody
@@ -104,7 +104,6 @@ public class BaseClientLoggingInterceptor {
    * @param requestHeaders
    * @param responseHeaders
    */
-  @Builder
   protected record LogContext(String uri, String requestBody, String responseBody,
                               HttpStatusCode status, String requestHeaders,
                               String responseHeaders) {
@@ -138,6 +137,57 @@ public class BaseClientLoggingInterceptor {
           ", responseHeaders='" + responseHeaders + '\'' +
           '}';
     }
+
+    public static class LogContextBuilder {
+
+      private String uri;
+      private String requestBody;
+      private String responseBody;
+      private HttpStatusCode status;
+      private String requestHeaders;
+      private String responseHeaders;
+
+      public LogContextBuilder uri(String uri) {
+        this.uri = uri;
+        return this;
+      }
+
+      public LogContextBuilder requestBody(String requestBody) {
+        this.requestBody = requestBody;
+        return this;
+      }
+
+      public LogContextBuilder responseBody(String responseBody) {
+        this.responseBody = responseBody;
+        return this;
+      }
+
+      public LogContextBuilder status(HttpStatusCode status) {
+        this.status = status;
+        return this;
+      }
+
+      public LogContextBuilder requestHeaders(String requestHeaders) {
+        this.requestHeaders = requestHeaders;
+        return this;
+      }
+
+      public LogContextBuilder responseHeaders(String responseHeaders) {
+        this.responseHeaders = responseHeaders;
+        return this;
+      }
+
+      public LogContext build() {
+        return new LogContext(uri, requestBody, responseBody, status, requestHeaders,
+            responseHeaders);
+      }
+    }
+
+    public static LogContextBuilder builder() {
+      return new LogContextBuilder();
+    }
+
+
   }
 
 }
