@@ -5,6 +5,15 @@ The adapter is a library designed to simplify integration with backend or infras
 By providing a properly configured HTTP client, the library handles critical integration tasks such as data modeling, exception handling, and managing the complexities of REST and SOAP protocols. 
 It abstracts the intricacies of communication with external systems, making it easier to focus on your application logic while ensuring a seamless integration experience.
 
+
+**dynamic-adapter-config-bridge extension**
+
+Dynamic Configuration Loader with Pull and Push Models
+
+Implements a dynamic configuration loader leveraging the dynamic-adapter-config-bridge extension. 
+The loader supports both eager and lazy initialization modes, with configurable options for triggers and scheduled updates. 
+Configuration can be loaded and updated dynamically, either during application startup or at runtime, enabling seamless integration and adaptability.
+
 # Compatibility Matrix
 
 | Lib        | Version  | Java Version |
