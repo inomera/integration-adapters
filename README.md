@@ -1,11 +1,9 @@
 # Backend/Infra Services Adapters Libraries
 
-The adapter serves backend/infra system services as a library.
+The adapter is a library designed to simplify integration with backend or infrastructure systems.
 
-You can use the library just giving the http client with your suitable configuration.
-
-The library handles the adapter integration layer works such as data modeling, exception handling,
-http rest/soap protocol complexities.
+By providing a properly configured HTTP client, the library handles critical integration tasks such as data modeling, exception handling, and managing the complexities of REST and SOAP protocols. 
+It abstracts the intricacies of communication with external systems, making it easier to focus on your application logic while ensuring a seamless integration experience.
 
 **IMPORTANT NOTE:** The doc should be updated when doing implementation.
 
