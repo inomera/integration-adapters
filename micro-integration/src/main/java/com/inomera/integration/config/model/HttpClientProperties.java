@@ -2,21 +2,81 @@ package com.inomera.integration.config.model;
 
 import java.io.Serializable;
 
+/**
+ * A configuration class for HTTP client properties.
+ *
+ * <p>This class holds settings for managing HTTP client behavior, including timeouts,
+ * connection limits, SSL handling, and redirection options. It supports a builder
+ * pattern for easy instantiation and a method for patching properties with
+ * non-default values from another instance.</p>
+ */
 public class HttpClientProperties implements Serializable {
-    private int requestTimeout;
-    private int connectTimeout;
-    private int idleConnectionsTimeout;
+    /**
+     * The maximum time (in milliseconds) to wait for an HTTP request to complete.
+     */
+    private long requestTimeout;
+
+    /**
+     * The maximum time (in milliseconds) to establish a connection.
+     */
+    private long connectTimeout;
+
+    /**
+     * The maximum time (in milliseconds) to keep idle connections in the pool.
+     */
+    private long idleConnectionsTimeout;
+
+    /**
+     * The maximum number of connections allowed in the connection pool.
+     */
     private int maxConnections;
+
+    /**
+     * The maximum number of connections per route.
+     */
     private int maxConnPerRoute;
+
+    /**
+     * The concurrency policy for the connection pool.
+     */
     private String poolConcurrencyPolicy;
-    private int timeToLive;
+
+    /**
+     * The maximum lifetime (in milliseconds) of a connection.
+     */
+    private long timeToLive;
+
+    /**
+     * Whether SSL validation should be skipped.
+     */
     private boolean skipSsl;
+
+    /**
+     * Whether automatic redirection handling is enabled.
+     */
     private boolean redirectsEnable;
+
     //TODO: SSL props should be added
 
+    /**
+     * Default constructor for {@code HttpClientProperties}.
+     */
     public HttpClientProperties() {
     }
 
+    /**
+     * Constructs an instance of {@code HttpClientProperties} with specified values.
+     *
+     * @param requestTimeout       The request timeout in milliseconds.
+     * @param connectTimeout       The connection timeout in milliseconds.
+     * @param idleConnectionsTimeout The idle connection timeout in milliseconds.
+     * @param maxConnections       The maximum number of connections.
+     * @param maxConnPerRoute      The maximum connections per route.
+     * @param poolConcurrencyPolicy The connection pool concurrency policy.
+     * @param timeToLive           The connection time-to-live in milliseconds.
+     * @param skipSsl              Whether to skip SSL validation.
+     * @param redirectsEnable      Whether to enable automatic redirects.
+     */
     public HttpClientProperties(int requestTimeout, int connectTimeout, int idleConnectionsTimeout, int maxConnections, int maxConnPerRoute, String poolConcurrencyPolicy, int timeToLive, boolean skipSsl, boolean redirectsEnable) {
         this.requestTimeout = requestTimeout;
         this.connectTimeout = connectTimeout;
@@ -41,27 +101,27 @@ public class HttpClientProperties implements Serializable {
         this.redirectsEnable = builder.redirectsEnable;
     }
 
-    public int getRequestTimeout() {
+    public long getRequestTimeout() {
         return requestTimeout;
     }
 
-    public void setRequestTimeout(int requestTimeout) {
+    public void setRequestTimeout(long requestTimeout) {
         this.requestTimeout = requestTimeout;
     }
 
-    public int getConnectTimeout() {
+    public long getConnectTimeout() {
         return connectTimeout;
     }
 
-    public void setConnectTimeout(int connectTimeout) {
+    public void setConnectTimeout(long connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
 
-    public int getIdleConnectionsTimeout() {
+    public long getIdleConnectionsTimeout() {
         return idleConnectionsTimeout;
     }
 
-    public void setIdleConnectionsTimeout(int idleConnectionsTimeout) {
+    public void setIdleConnectionsTimeout(long idleConnectionsTimeout) {
         this.idleConnectionsTimeout = idleConnectionsTimeout;
     }
 
@@ -89,11 +149,11 @@ public class HttpClientProperties implements Serializable {
         this.poolConcurrencyPolicy = poolConcurrencyPolicy;
     }
 
-    public int getTimeToLive() {
+    public long getTimeToLive() {
         return timeToLive;
     }
 
-    public void setTimeToLive(int timeToLive) {
+    public void setTimeToLive(long timeToLive) {
         this.timeToLive = timeToLive;
     }
 
@@ -175,27 +235,27 @@ public class HttpClientProperties implements Serializable {
     }
 
     public static class Builder {
-        private int requestTimeout;
-        private int connectTimeout;
-        private int idleConnectionsTimeout;
+        private long requestTimeout;
+        private long connectTimeout;
+        private long idleConnectionsTimeout;
         private int maxConnections;
         private int maxConnPerRoute;
         private String poolConcurrencyPolicy;
-        private int timeToLive;
+        private long timeToLive;
         private boolean skipSsl;
         private boolean redirectsEnable;
 
-        public Builder requestTimeout(int requestTimeout) {
+        public Builder requestTimeout(long requestTimeout) {
             this.requestTimeout = requestTimeout;
             return this;
         }
 
-        public Builder connectTimeout(int connectTimeout) {
+        public Builder connectTimeout(long connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
         }
 
-        public Builder idleConnectionsTimeout(int idleConnectionsTimeout) {
+        public Builder idleConnectionsTimeout(long idleConnectionsTimeout) {
             this.idleConnectionsTimeout = idleConnectionsTimeout;
             return this;
         }
@@ -215,7 +275,7 @@ public class HttpClientProperties implements Serializable {
             return this;
         }
 
-        public Builder timeToLive(int timeToLive) {
+        public Builder timeToLive(long timeToLive) {
             this.timeToLive = timeToLive;
             return this;
         }

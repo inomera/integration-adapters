@@ -4,7 +4,7 @@ import com.inomera.integration.model.AdapterStatus;
 
 
 /**
- * Gateway token exception, this is thrown when there is an error while creating a new GW token.
+ * Backend service authentication error adapter exception.
  *
  * @author Burak Dogan Akyildiz
  * @see AdapterException

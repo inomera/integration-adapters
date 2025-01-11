@@ -1,6 +1,5 @@
 package com.inomera.integration.config;
 
-import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.config.model.*;
 import com.inomera.integration.fault.NotImplementedException;
 
@@ -26,9 +25,10 @@ public class DefaultAdapterConfigDataSupplier implements AdapterConfigDataSuppli
                         .headers(Map.of())
                         .url(this.url)
                         .httpClientProperties(HttpClientProperties.builder()
-                                .requestTimeout(30000)
-                                .connectTimeout(10000)
-                                .idleConnectionsTimeout(60000)
+                                .requestTimeout(20000L)
+                                .connectTimeout(5000L)
+                                .idleConnectionsTimeout(30000L)
+                                .timeToLive(30000L)
                                 .maxConnections(10)
                                 .skipSsl(true)
                                 .build())
