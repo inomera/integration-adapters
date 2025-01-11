@@ -95,6 +95,15 @@ public class BaseClientLoggingInterceptor {
     return log;
   }
 
+  /**
+   * Context of http request-response log
+   * @param uri
+   * @param requestBody
+   * @param responseBody
+   * @param status
+   * @param requestHeaders
+   * @param responseHeaders
+   */
   @Builder
   protected record LogContext(String uri, String requestBody, String responseBody,
                               HttpStatusCode status, String requestHeaders,
