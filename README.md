@@ -1,11 +1,29 @@
-# Backend/Infra Services Adapters Libraries
+# Integration Adapters
 
 The adapter is a library designed to simplify integration with backend or infrastructure systems.
 
 By providing a properly configured HTTP client, the library handles critical integration tasks such as data modeling, exception handling, and managing the complexities of REST and SOAP protocols. 
 It abstracts the intricacies of communication with external systems, making it easier to focus on your application logic while ensuring a seamless integration experience.
 
-**IMPORTANT NOTE:** The doc should be updated when doing implementation.
+# Compatibility Matrix
+
+| Lib        | Version  | Java Version |
+|------------|----------|--------------|
+| micro-integration      |    1.X.X      | 17           |
+| micro-middleware      |    1.X.X      | 17           |
+| dynamic-adapter-config-bridge      |    1.X.X      | 17           |
+
+
+# Integration Adapters Libraries
+
+![Build](https://github.com/inomera/integration-adapters/workflows/Build/badge.svg)
+
+
+| Artifact                   | Version                                                                                                                                                                                                                                    |
+|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/lang/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
+| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/lang/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
+| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/lang/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
 
 ## Architecture
 
@@ -16,9 +34,9 @@ High Level Diagram
 ## Issues
 
 ## TODO LIST
-
- - Add ssl forge
- - Add maven central repository (snapshot and release)
+ - SSL cert, config load from dynamic configs 
+ - Add ssl forge (@fatihbozik) : DONE
+ - Add maven central repository (snapshot and release) (@turgaycan ) : DONE
 
 ## Advantages
 
@@ -57,6 +75,8 @@ Please check the implementation of the features before asking any questions.
 ### REST
 
 Apache HttpClient 5
+JDK Http Client
+OK HTTP (not implement yet)
 
 ### SOAP
 
