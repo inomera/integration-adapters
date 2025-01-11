@@ -1,3 +1,21 @@
+gradle.properties
+*.gpg
+
+.cvsignore
+
+*/target
+target
+
+*/bin
+bin
+
+*/build
+build
+
+out
+
+.gradle/
+
 HELP.md
 .gradle
 build/
@@ -23,8 +41,11 @@ bin/
 *.iml
 *.ipr
 out/
+*/out
 !**/src/main/**/out/
 !**/src/test/**/out/
+MANIFEST.MF
+.tern-project
 
 ### NetBeans ###
 /nbproject/private/
