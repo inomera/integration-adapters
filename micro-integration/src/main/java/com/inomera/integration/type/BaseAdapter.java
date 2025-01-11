@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * @param <C> EndpointConnectionConfig type.
  * @author Burak Dogan Akyildiz, Turgay Can.
  */
-public abstract class BaseAdapter<C extends AdapterConfig> {
+public abstract class BaseAdapter<C extends AdapterConfig> implements Adapter<C>{
 
     /**
      * Logging with using java util logger.
@@ -64,7 +64,6 @@ public abstract class BaseAdapter<C extends AdapterConfig> {
      * User defined interceptors to intercept http request steps.
      */
     private final List<IntegrationAdapterInterceptor> interceptors;
-
 
     public BaseAdapter(Supplier<C> adapterConfigDataSupplier, HttpAdapterClient httpAdapterClient) {
         this.adapterConfigDataSupplier = adapterConfigDataSupplier;
