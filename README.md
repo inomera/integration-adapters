@@ -5,6 +5,20 @@ The adapter is a library designed to simplify integration with backend or infras
 By providing a properly configured HTTP client, the library handles critical integration tasks such as data modeling, exception handling, and managing the complexities of REST and SOAP protocols. 
 It abstracts the intricacies of communication with external systems, making it easier to focus on your application logic while ensuring a seamless integration experience.
 
+It composes two thin libraries.
+
+**micro-integration**
+
+It is the framework library of Integration Adapters libraries. 
+It includes common models and interfaces. 
+It has no dependencies other than JDK.
+
+**micro-middleware**
+
+Implementations of micro-integration library are included.
+Calling of Http Client and End services is done through this layer.
+Solutions of common problems such as logging and security are included. 
+Spring framework's WebserviceTemplate and RestTemplate are used to abstract http client libraries within itself.
 
 **dynamic-adapter-config-bridge extension**
 
@@ -30,9 +44,9 @@ Configuration can be loaded and updated dynamically, either during application s
 
 | Artifact                   | Version                                                                                                                                                                                                                                    |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/lang/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
-| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/lang/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
-| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/lang/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
+| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
+| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
+| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
 
 ## Architecture
 
