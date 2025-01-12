@@ -39,6 +39,7 @@ dependencies {
   //  api "com.inomera.integration:micro-middleware:${versions.middleware}"
   //  api "com.inomera.integration.ext:dynamic-adapter-config-bridge:${versions.dac_bridge}"
   //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
+  implementation project(path: ':micro-integration')
   implementation project(path: ':micro-middleware')
   implementation project(path: ':dynamic-adapter-config-bridge')
 
