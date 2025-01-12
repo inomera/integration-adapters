@@ -39,7 +39,7 @@ Configuration can be loaded and updated dynamically, either during application s
 
 # Integration Adapters Libraries
 
-![Build](https://github.com/inomera/integration-adapters/workflows/Build/badge.svg)
+
 
 
 | Artifact                   | Version                                                                                                                                                                                                                                    |
