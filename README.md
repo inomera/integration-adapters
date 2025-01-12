@@ -41,7 +41,6 @@ Configuration can be loaded and updated dynamically, either during application s
 
 ![Build](https://github.com/inomera/integration-adapters/workflows/Build/badge.svg)
 
-
 | Artifact                   | Version                                                                                                                                                                                                                                    |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
@@ -57,7 +56,8 @@ High Level Diagram
 ## Issues
 
 ## TODO LIST
- - SSL cert, config load from dynamic configs 
+ - SSL cert, config load from dynamic configs (@fatihbozik)
+ - Add runtime configs intercepts (?)
  - Add ssl forge (@fatihbozik) : DONE
  - Add maven central repository (snapshot and release) (@turgaycan ) : DONE
 
