@@ -1,5 +1,5 @@
 plugins {
-  id 'java'
+  id 'java-library'
   id 'maven-publish'
 }
 
@@ -9,6 +9,11 @@ println "Gradle Artifact for other projects: \ncompile '${group}:${name}:${versi
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
 
 configurations {
   compileOnly {
@@ -25,13 +30,17 @@ ext.jaxwsSourceDir = "src/main/java"
 
 compileJava.dependsOn(processResources, 'wsimport')
 
+compileJava.dependsOn(processResources)
+
 dependencies {
 
-  implementation project(path: ':micro-integration')
+  //INFO : for versioning it should be api!! DO NOT REMOVE THE INFO LINE
+  // publishToMavenLocal for local lib testing
+  //  api "com.inomera.integration:micro-middleware:${versions.middleware}"
+  //  api "com.inomera.integration.ext:dynamic-adapter-config-bridge:${versions.dac_bridge}"
+  //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
   implementation project(path: ':micro-middleware')
   implementation project(path: ':dynamic-adapter-config-bridge')
-
-  implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
 
   // soap
   implementation "org.springframework.boot:spring-boot-starter-web-services:${versions.spring_boot_ws}"

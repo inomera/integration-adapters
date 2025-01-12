@@ -5,6 +5,6 @@ config-manager:
   reload:
     enabled: true
     trigger: cron
-    cron-expression: '0/2 * * * * ?'
+    cron-expression: '0/30 * * * * ?'
   properties:
     property-files: classpath:settings.properties
