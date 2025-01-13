@@ -5,7 +5,7 @@ The adapter is a library designed to simplify integration with backend or infras
 By providing a properly configured HTTP client, the library handles critical integration tasks such as data modeling, exception handling, and managing the complexities of REST and SOAP protocols. 
 It abstracts the intricacies of communication with external systems, making it easier to focus on your application logic while ensuring a seamless integration experience.
 
-It composes two main thin libraries. And also it has a extension thin library.
+It composes two main thin libraries. And also it has aa extension thin library.
 
 **micro-integration**
 
