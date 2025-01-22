@@ -1,0 +1,45 @@
+{
+  "key": "config.adapter.mirket.v1",
+  "adapterProperties": {
+    "runtime": true,
+    "auth": {
+      "type": "BEARER",
+      "username": "username",
+      "password": "password",
+      "url": "https://www.googleapis.com/oauth2/v4/token",
+      "grantType": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      "ttl": 3600000,
+      "scope": "https://www.googleapis.com/auth/cloud-platform",
+      "clientId": "client_id",
+      "clientSecret": "client_secret",
+      "contentType": "application/x-www-form-urlencoded",
+      "accept": "application/json",
+      "tokenJsonPath": "$.access_token"
+    },
+    "headers": {
+      "X-GW-TOKEN": ""
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 60000,
+      "maxConnections": 50,
+      "maxConnPerRoute": 50,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+        "Authorization"
+      ],
+      "nonLoggingFields": [
+        "file",
+        "content"
+      ]
+    },
+    "url": "https://api.mirket.inomera.com/v10/first"
+  }
+}
