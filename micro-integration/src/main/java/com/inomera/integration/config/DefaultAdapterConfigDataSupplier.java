@@ -33,6 +33,7 @@ public class DefaultAdapterConfigDataSupplier implements AdapterConfigDataSuppli
                                 .skipSsl(true)
                                 .build())
                         .auth(new Auth.NoneAuth())
+                        .runtime(false)
                         .build())
                 .build();
     }

@@ -9,6 +9,7 @@ public class AdapterProperties implements Serializable {
     private Map<String, String> headers;
     private HttpClientProperties http;
     private Auth auth;
+    private Boolean runtime;
 
     public AdapterProperties() {
     }
@@ -19,6 +20,7 @@ public class AdapterProperties implements Serializable {
         this.headers = builder.headers;
         this.http = builder.httpClientProperties;
         this.auth = builder.auth;
+        this.runtime = builder.runtime;
     }
 
     public AdapterLogging getLogging() {
@@ -61,6 +63,14 @@ public class AdapterProperties implements Serializable {
         this.auth = auth;
     }
 
+    public boolean isRuntime() {
+        return runtime;
+    }
+
+    public void setRuntime(boolean runtime) {
+        this.runtime = runtime;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -73,6 +83,7 @@ public class AdapterProperties implements Serializable {
                 ", headers=" + headers +
                 ", httpClientProperties=" + http +
                 ", auth=" + auth +
+                ", runtime=" + runtime +
                 '}';
     }
 
@@ -102,6 +113,18 @@ public class AdapterProperties implements Serializable {
                     this.getHeaders().putIfAbsent(key, value)
             );
         }
+        this.runtime = this.runtime != null ? this.runtime : commonConfigAdapterProperties.isRuntime();
+    }
+
+    public String toSecureString() {
+        return "AdapterProperties{" +
+                "logging=" + logging +
+                ", url='" + url + '\'' +
+                ", headers=" + headers +
+                ", httpClientProperties=" + http +
+                ", auth= **masked**" +
+                ", runtime=" + runtime +
+                '}';
     }
 
     public static class Builder {
@@ -110,6 +133,7 @@ public class AdapterProperties implements Serializable {
         private Map<String, String> headers;
         private HttpClientProperties httpClientProperties;
         private Auth auth;
+        private Boolean runtime;
 
         public Builder logging(AdapterLogging adapterLogging) {
             this.adapterLogging = adapterLogging;
@@ -133,6 +157,11 @@ public class AdapterProperties implements Serializable {
 
         public Builder auth(Auth auth) {
             this.auth = auth;
+            return this;
+        }
+
+        public Builder runtime(Boolean runtime) {
+            this.runtime = runtime;
             return this;
         }
 

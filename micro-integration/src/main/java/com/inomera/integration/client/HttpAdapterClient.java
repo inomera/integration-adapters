@@ -36,4 +36,12 @@ public interface HttpAdapterClient {
     <O> HttpAdapterResponse<O> send(HttpAdapterRequest httpAdapterRequest, Class<O> responseType)
             throws AdapterException;
 
+    /**
+     *
+     * @return default value as false
+     */
+    default boolean reloadRuntime(){
+        return false;
+    }
+
 }
