@@ -15,10 +15,10 @@ subprojects {
 ext {
     versions = [
             //main libs
-            integration       : '1.0.0',
-            middleware        : '1.0.0',
+            integration       : '1.1.0',
+            middleware        : '1.1.0',
             //adapter ext
-            dac_bridge        : '1.0.0',
+            dac_bridge        : '1.1.0',
             //ext libs
             spring_boot_ws    : '3.1.5',
             spring_ws_core    : '4.0.5',

@@ -30,27 +30,23 @@ tasks.withType(Zip).configureEach {
 dependencies {
 
     //INFO : mirket-adapter -> publishToMavenLocal for local lib testing
-    // implementation 'com.inomera.adapters:mirket-adapter:1.0.0'
+    implementation 'com.inomera.adapters:mirket-adapter:1.1.0'
 
     /* DEVELOPMENT SITE DEPENDENCIES BEGIN*/
     //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
-    implementation project(path: ':mirket-adapter')
-    implementation project(path: ':micro-integration')
-    implementation project(path: ':micro-middleware')
-    implementation project(path: ':dynamic-adapter-config-bridge')
-    implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
-    implementation "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
-    implementation "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
-
+    //    implementation project(path: ':mirket-adapter')
+    //    implementation project(path: ':micro-integration')
+    //    implementation project(path: ':micro-middleware')
+    //    implementation project(path: ':dynamic-adapter-config-bridge')
+    //    implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
     /* DEVELOPMENT SITE DEPENDENCIES END */
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     implementation "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-
-
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

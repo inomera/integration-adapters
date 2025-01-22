@@ -38,6 +38,7 @@ public class MirketAdapterImpl extends RestAdapter<AdapterConfig> implements
       MirketRestAdapterProperties mirketProps, Function<I, O> resultMapperFunction) {
     final Map<String, String> headers = new HashMap();
     headers.put("X-GW-API-KEY", "3cf9ff3b-c2d0-4813-8f31-cd940490923f");
+    headers.put("Host", "api.mirket.inomera.com");
     final AdapterResponse<FirstRestResponse> ar = executeGeneric("/v10/first", HttpMethod.GET,
         headers, null, FirstRestResponse.class, null);
     return (AdapterResponse<O>) ar;
@@ -48,7 +49,8 @@ public class MirketAdapterImpl extends RestAdapter<AdapterConfig> implements
       MirketRestAdapterProperties mirketProps) {
     final Map<String, String> headers = new HashMap();
     headers.put("X-GW-API-KEY", "3cf9ff3b-c2d0-4813-8f31-cd940490923f");
-    return get("/v10/first", headers, null,
+    headers.put("Host", "api.mirket.inomera.com");
+    return get("", headers, null,
         FirstRestResponse.class, httpAdapterResponse -> {
 
           final FirstRestResponse first = httpAdapterResponse.body();
