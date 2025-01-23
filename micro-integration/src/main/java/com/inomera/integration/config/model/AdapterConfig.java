@@ -3,12 +3,16 @@ package com.inomera.integration.config.model;
 import com.inomera.integration.config.EndpointConfig;
 import com.inomera.integration.fault.AdapterException;
 import com.inomera.integration.model.AdapterStatus;
+import com.inomera.integration.util.TextUtils;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class AdapterConfig implements EndpointConfig, Serializable {
     private String key;
     private AdapterProperties adapterProperties;
+    private transient boolean refresh;
 
     public AdapterConfig() {
     }
@@ -39,11 +43,20 @@ public class AdapterConfig implements EndpointConfig, Serializable {
         this.adapterProperties = adapterProperties;
     }
 
+    public boolean isRefresh() {
+        return refresh;
+    }
+
+    public void setRefresh(boolean refresh) {
+        this.refresh = refresh;
+    }
+
     @Override
     public String toString() {
         return "Config{" +
                 "key='" + key + '\'' +
                 ", adapterProperties=" + adapterProperties +
+                ", refresh=" + refresh +
                 '}';
     }
 
@@ -71,6 +84,18 @@ public class AdapterConfig implements EndpointConfig, Serializable {
             throw new AdapterException(AdapterStatus.createStatusFailedAsTechnical("url cannot empty"));
         }
         return url;
+    }
+
+    @Override
+    public String hashConfig() {
+        final String encodedConfig = Base64.getEncoder().encodeToString(toString().getBytes(StandardCharsets.UTF_8));
+        return TextUtils.generateUniqueUUID(encodedConfig);
+    }
+
+    public String toSecureString() {
+        return " adapterProperties=" + adapterProperties.toSecureString() +
+                ", refresh=" + refresh +
+                '}';
     }
 
     public static class Builder {

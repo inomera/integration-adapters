@@ -1,5 +1,5 @@
 plugins {
-  id 'java'
+  id 'java-library'
   id 'maven-publish'
 }
 
@@ -14,15 +14,18 @@ repositories {
 }
 
 dependencies {
+  //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
+  //implementation project(path: ':micro-integration')
 
-  implementation project(path: ':micro-integration')
-  implementation 'com.inomera.telco.commons:config-manager-spring:4.0.0'
+  api "com.inomera.integration:micro-integration:${versions.integration}"
+  api 'com.inomera.telco.commons:config-manager-spring:4.0.0'
 
   implementation "org.projectlombok:lombok:${versions.lombok}"
   annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+  testImplementation "org.springframework.boot:spring-boot-starter-test:${versions.spring_boot_test}"
 }
 
 test {

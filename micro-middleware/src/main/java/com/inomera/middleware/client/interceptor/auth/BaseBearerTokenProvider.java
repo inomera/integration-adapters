@@ -61,10 +61,10 @@ public class BaseBearerTokenProvider {
     HttpEntity<MultiValueMap<String, String>> tokenRequest =
         new HttpEntity<>(pullAllCredentials(bearerTokenCredentials), headers);
     try {
-      ResponseEntity<Object> tokenResponse = restTemplate.postForEntity(url, tokenRequest,
-          Object.class);
+      ResponseEntity<String> tokenResponse = restTemplate.postForEntity(url, tokenRequest,
+          String.class);
       if (tokenResponse.getStatusCode() == HttpStatus.OK) {
-        String body = tokenResponse.hasBody() ? (String) tokenResponse.getBody() : null;
+        String body = tokenResponse.hasBody() ? tokenResponse.getBody() : null;
         if (Objects.isNull(body)) {
           throw new AdapterException(
               AdapterStatus.createStatusFailedAsTechnical("Bearer token response body is null"));
@@ -110,14 +110,20 @@ public class BaseBearerTokenProvider {
       BearerTokenCredentials bearerTokenCredentials) {
     MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
     Map<String, String> tokenMap = new LinkedHashMap<>();
-    tokenMap.put("username", bearerTokenCredentials.getUsername());
-    tokenMap.put("password", bearerTokenCredentials.getPassword());
-    tokenMap.put("client_id", bearerTokenCredentials.getClientId());
-    tokenMap.put("client_secret", bearerTokenCredentials.getClientSecret());
-    tokenMap.put("grant_type", bearerTokenCredentials.getGrantType());
-    tokenMap.put("scope", bearerTokenCredentials.getScope());
+    addIfNotBlank(multiValueMap, "username", bearerTokenCredentials.getUsername());
+    addIfNotBlank(multiValueMap, "password", bearerTokenCredentials.getPassword());
+    addIfNotBlank(multiValueMap, "client_id", bearerTokenCredentials.getClientId());
+    addIfNotBlank(multiValueMap, "client_secret", bearerTokenCredentials.getClientSecret());
+    addIfNotBlank(multiValueMap, "grant_type", bearerTokenCredentials.getGrantType());
+    addIfNotBlank(multiValueMap, "scope", bearerTokenCredentials.getScope());
     multiValueMap.setAll(tokenMap);
     return multiValueMap;
+  }
+
+  private void addIfNotBlank(MultiValueMap<String, String> map, String key, String value) {
+    if (StringUtils.isNotBlank(value)) {
+      map.add(key, value);
+    }
   }
 
   /**

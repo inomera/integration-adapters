@@ -47,7 +47,7 @@ class DefaultBearerTokenInterceptorTest {
     restTemplate = mock(RestTemplate.class);
     interceptor = new RestDefaultBearerTokenInterceptor(credentials, restTemplate);
     when(restTemplate.postForEntity(eq("http://example.com/token"), any(HttpEntity.class),
-        eq(Object.class)))
+        eq(String.class)))
         .thenReturn(new ResponseEntity<>(TOKEN_RESPONSE, HttpStatus.OK));
   }
 
@@ -118,7 +118,7 @@ class DefaultBearerTokenInterceptorTest {
     when(credentials.getUrl()).thenReturn("http://example.com/token");
     when(credentials.getTokenJsonPath()).thenReturn("$.access_token");
     when(credentials.getTtl()).thenReturn(3600L);
-    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class)))
+    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
         .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
 
     assertThrows(AdapterException.class, () -> interceptor.getBearerToken());
@@ -129,7 +129,7 @@ class DefaultBearerTokenInterceptorTest {
     when(credentials.getUrl()).thenReturn("http://example.com/token");
     when(credentials.getTokenJsonPath()).thenReturn("$.access_token");
     when(credentials.getTtl()).thenReturn(3600L);
-    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class)))
+    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
         .thenReturn(
             new ResponseEntity<>(EMPTY_TOKEN_RESPONSE, HttpStatus.OK));
 
@@ -141,7 +141,7 @@ class DefaultBearerTokenInterceptorTest {
     when(credentials.getUrl()).thenReturn("http://example.com/token");
     when(credentials.getTokenJsonPath()).thenReturn("$.access_token");
     when(credentials.getTtl()).thenReturn(3600L);
-    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class)))
+    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
         .thenThrow(new ResourceAccessException("Resource access exception"));
 
     assertThrows(AdapterException.class, () -> interceptor.getBearerToken());
@@ -149,7 +149,7 @@ class DefaultBearerTokenInterceptorTest {
 
   @Test
   void getBearerToken_whenValidResponse() {
-    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class)))
+    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
         .thenReturn(new ResponseEntity<>(TOKEN_RESPONSE, HttpStatus.OK));
 
     ActiveBearerToken bearerToken = interceptor.getBearerToken();

@@ -76,7 +76,6 @@ class CountryAdapterImplTest {
       AdapterLogging adapterLoggingDetail = new AdapterLogging(LogStrategy.REQ_RES);
       adapterLoggingDetail.setNonLoggingFields(List.of("sCountryISOCode"));
       adapterLoggingDetail.setSensitiveFields(List.of("CountryNameResult"));
-      //TODO : lazy init defaultAdapterConfigDataSupplier.getConfig() <- should be supplier method
       httpSoapClient = new ApacheHttpSoapAdapterClient(defaultAdapterConfigDataSupplier::getConfig,
           messageSender, marshaller, marshaller, marshallPath);
       final WebServiceTemplate webServiceTemplate = httpSoapClient.getWebServiceTemplate();

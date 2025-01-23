@@ -8,4 +8,5 @@ package com.inomera.integration.config;
  */
 public interface EndpointConfig {
 
+    String hashConfig();
 }
