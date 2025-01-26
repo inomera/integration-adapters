@@ -49,14 +49,17 @@ public class HttpClientProperties implements Serializable {
     /**
      * Whether SSL validation should be skipped.
      */
-    private boolean skipSsl;
+    private Boolean skipSsl;
+
+    /**
+     * The SSL properties.
+     */
+    private SSLProperties ssl;
 
     /**
      * Whether automatic redirection handling is enabled.
      */
     private boolean redirectsEnable;
-
-    //TODO: SSL props should be added
 
     /**
      * Default constructor for {@code HttpClientProperties}.
@@ -67,17 +70,20 @@ public class HttpClientProperties implements Serializable {
     /**
      * Constructs an instance of {@code HttpClientProperties} with specified values.
      *
-     * @param requestTimeout       The request timeout in milliseconds.
-     * @param connectTimeout       The connection timeout in milliseconds.
+     * @param requestTimeout         The request timeout in milliseconds.
+     * @param connectTimeout         The connection timeout in milliseconds.
      * @param idleConnectionsTimeout The idle connection timeout in milliseconds.
-     * @param maxConnections       The maximum number of connections.
-     * @param maxConnPerRoute      The maximum connections per route.
-     * @param poolConcurrencyPolicy The connection pool concurrency policy.
-     * @param timeToLive           The connection time-to-live in milliseconds.
-     * @param skipSsl              Whether to skip SSL validation.
-     * @param redirectsEnable      Whether to enable automatic redirects.
+     * @param maxConnections         The maximum number of connections.
+     * @param maxConnPerRoute        The maximum connections per route.
+     * @param poolConcurrencyPolicy  The connection pool concurrency policy.
+     * @param timeToLive             The connection time-to-live in milliseconds.
+     * @param skipSsl                Whether to skip SSL validation.
+     * @param ssl                    The SSL properties.
+     * @param redirectsEnable        Whether to enable automatic redirects.
      */
-    public HttpClientProperties(int requestTimeout, int connectTimeout, int idleConnectionsTimeout, int maxConnections, int maxConnPerRoute, String poolConcurrencyPolicy, int timeToLive, boolean skipSsl, boolean redirectsEnable) {
+    public HttpClientProperties(int requestTimeout, int connectTimeout, int idleConnectionsTimeout, int maxConnections,
+                                int maxConnPerRoute, String poolConcurrencyPolicy, int timeToLive, Boolean skipSsl,
+                                SSLProperties ssl, boolean redirectsEnable) {
         this.requestTimeout = requestTimeout;
         this.connectTimeout = connectTimeout;
         this.idleConnectionsTimeout = idleConnectionsTimeout;
@@ -86,6 +92,7 @@ public class HttpClientProperties implements Serializable {
         this.poolConcurrencyPolicy = poolConcurrencyPolicy;
         this.timeToLive = timeToLive;
         this.skipSsl = skipSsl;
+        this.ssl = ssl;
         this.redirectsEnable = redirectsEnable;
     }
 
@@ -98,6 +105,7 @@ public class HttpClientProperties implements Serializable {
         this.poolConcurrencyPolicy = builder.poolConcurrencyPolicy;
         this.timeToLive = builder.timeToLive;
         this.skipSsl = builder.skipSsl;
+        this.ssl = builder.ssl;
         this.redirectsEnable = builder.redirectsEnable;
     }
 
@@ -157,12 +165,24 @@ public class HttpClientProperties implements Serializable {
         this.timeToLive = timeToLive;
     }
 
-    public boolean isSkipSsl() {
+    public Boolean getSkipSsl() {
         return skipSsl;
     }
 
-    public void setSkipSsl(boolean skipSsl) {
+    public boolean isSkipSsl() {
+        return skipSsl == null || skipSsl;
+    }
+
+    public void setSkipSsl(Boolean skipSsl) {
         this.skipSsl = skipSsl;
+    }
+
+    public SSLProperties getSsl() {
+        return ssl;
+    }
+
+    public void setSsl(SSLProperties ssl) {
+        this.ssl = ssl;
     }
 
     public boolean isRedirectsEnable() {
@@ -176,16 +196,17 @@ public class HttpClientProperties implements Serializable {
     @Override
     public String toString() {
         return "HttpClientProperties{" +
-                "requestTimeout=" + requestTimeout +
-                ", connectTimeout=" + connectTimeout +
-                ", idleConnectionsTimeout=" + idleConnectionsTimeout +
-                ", maxConnections=" + maxConnections +
-                ", maxConnPerRoute=" + maxConnPerRoute +
-                ", poolConcurrencyPolicy='" + poolConcurrencyPolicy + '\'' +
-                ", timeToLive=" + timeToLive +
-                ", skipSsl=" + skipSsl +
-                ", redirectsEnable=" + redirectsEnable +
-                '}';
+               "requestTimeout=" + requestTimeout +
+               ", connectTimeout=" + connectTimeout +
+               ", idleConnectionsTimeout=" + idleConnectionsTimeout +
+               ", maxConnections=" + maxConnections +
+               ", maxConnPerRoute=" + maxConnPerRoute +
+               ", poolConcurrencyPolicy='" + poolConcurrencyPolicy + '\'' +
+               ", timeToLive=" + timeToLive +
+               ", skipSsl=" + skipSsl +
+               ", ssl=" + ssl +
+               ", redirectsEnable=" + redirectsEnable +
+               '}';
     }
 
     public void patch(HttpClientProperties httpClientProperties) {
@@ -221,8 +242,8 @@ public class HttpClientProperties implements Serializable {
             setTimeToLive(httpClientProperties.getTimeToLive());
         }
 
-        if (!isSkipSsl()) {
-            setSkipSsl(httpClientProperties.isSkipSsl());
+        if (getSkipSsl() == null) {
+            setSkipSsl(httpClientProperties.getSkipSsl());
         }
 
         if (!isRedirectsEnable()) {
@@ -242,8 +263,9 @@ public class HttpClientProperties implements Serializable {
         private int maxConnPerRoute;
         private String poolConcurrencyPolicy;
         private long timeToLive;
-        private boolean skipSsl;
+        private Boolean skipSsl;
         private boolean redirectsEnable;
+        private SSLProperties ssl;
 
         public Builder requestTimeout(long requestTimeout) {
             this.requestTimeout = requestTimeout;
@@ -280,13 +302,18 @@ public class HttpClientProperties implements Serializable {
             return this;
         }
 
-        public Builder skipSsl(boolean skipSsl) {
+        public Builder skipSsl(Boolean skipSsl) {
             this.skipSsl = skipSsl;
             return this;
         }
 
         public Builder redirectsEnable(boolean redirectsEnable) {
             this.redirectsEnable = redirectsEnable;
+            return this;
+        }
+
+        public Builder ssl(SSLProperties ssl) {
+            this.ssl = ssl;
             return this;
         }
 

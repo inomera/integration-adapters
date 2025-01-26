@@ -213,8 +213,7 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
     CustomRestTemplateBuilder customRestTemplateBuilder = new CustomRestTemplateBuilder()
         .setRequestFactorySettings(connectTimeout, readTimeout)
         .setSslBundle(sslBundle)
-        .interceptors(interceptors)
-        .additionalMessageConverters(new FormHttpMessageConverter());
+        .interceptors(interceptors);
 
     if (clientHttpRequestFactoryInput instanceof ClientHttpRequestFactory clientHttpRequestFactory) {
       customRestTemplateBuilder.requestFactory(() -> clientHttpRequestFactory);
@@ -232,7 +231,10 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
           "Unsupported input type for clientHttpRequestFactoryInput");
     }
 
-    return customRestTemplateBuilder.build();
+    RestTemplate restTemplate = customRestTemplateBuilder.build();
+    restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+
+    return restTemplate;
   }
 
   private List<ClientHttpRequestInterceptor> getClientHttpRequestInterceptors(
