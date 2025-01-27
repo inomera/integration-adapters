@@ -16,9 +16,9 @@ repositories {
 
 dependencies {
   //INFO : for versioning it should be api!! DO NOT REMOVE THE INFO LINE
-  api "com.inomera.integration:micro-integration:${versions.integration}"
+//  api "com.inomera.integration:micro-integration:${versions.integration}"
   //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
-  //implementation project(path: ':micro-integration')
+  implementation project(path: ':micro-integration')
 
   // combine multiple ssl certs for JDK certs
   api 'com.inomera.telco:ssl-forge:1.0.0'

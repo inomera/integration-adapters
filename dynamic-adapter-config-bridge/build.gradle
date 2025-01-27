@@ -15,9 +15,9 @@ repositories {
 
 dependencies {
   //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
-  //implementation project(path: ':micro-integration')
+  implementation project(path: ':micro-integration')
 
-  api "com.inomera.integration:micro-integration:${versions.integration}"
+//  api "com.inomera.integration:micro-integration:${versions.integration}"
   api 'com.inomera.telco.commons:config-manager-spring:4.0.0'
 
   implementation "org.projectlombok:lombok:${versions.lombok}"
