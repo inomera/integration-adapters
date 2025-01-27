@@ -2,6 +2,7 @@ package com.inomera.middleware.client.interceptor.log;
 
 import com.inomera.integration.config.model.AdapterLogging;
 import com.inomera.integration.config.model.LogStrategy;
+import com.inomera.middleware.client.BufferingClientHttpResponseWrapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,7 +45,7 @@ public class RestLoggingInterceptor extends BaseClientLoggingInterceptor impleme
       if (adapterLogging.getStrategy().allOrFailure()) {
         logContextBuilder.requestHeaders(req.getHeaders().toString());
       }
-      ClientHttpResponse response = ex.execute(req, reqBody);
+      ClientHttpResponse response = new BufferingClientHttpResponseWrapper(ex.execute(req, reqBody));
       InputStreamReader isr = new InputStreamReader(response.getBody(), StandardCharsets.UTF_8);
       final String body = new BufferedReader(isr).lines().collect(Collectors.joining("\n"));
       logContextBuilder.responseBody(body);
