@@ -32,9 +32,9 @@ Configuration can be loaded and updated dynamically, either during application s
 
 | Lib        | Version  | Java Version |
 |------------|----------|--------------|
-| micro-integration      |    1.X.X      | 17           |
-| micro-middleware      |    1.X.X      | 17           |
-| dynamic-adapter-config-bridge      |    1.X.X      | 17           |
+| micro-integration      |    1.1.X      | 17           |
+| micro-middleware      |    1.1.X      | 17           |
+| dynamic-adapter-config-bridge      |    1.1.X      | 17           |
 
 
 # Integration Adapters Libraries
@@ -43,9 +43,9 @@ Configuration can be loaded and updated dynamically, either during application s
 
 | Artifact                   | Version                                                                                                                                                                                                                                    |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
-| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
-| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
+| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
+| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
+| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
 
 ## Architecture
 
@@ -56,10 +56,10 @@ High Level Diagram
 ## Issues
 
 ## TODO LIST
- - SSL cert, config load from dynamic configs (@fatihbozik)
- - Add runtime configs intercepts (?)
- - Add ssl forge (@fatihbozik) : DONE
- - Add maven central repository (snapshot and release) (@turgaycan ) : DONE
+ - Changing SSL cert loading (@fatihbozik) : next patch
+ - SSL cert, config load from dynamic configs (@fatihbozik) : DONE (1.1.0)
+ - Add runtime configs intercepts (@turgaycan, @oransalih) : DONE (1.1.0)
+ - Add ssl forge (@fatihbozik) : DONE (1.1.0)
 
 ## Advantages
 
