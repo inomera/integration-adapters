@@ -1,8 +1,6 @@
 package com.inomera.adapter.example.msexample;
 
 import com.inomera.integration.model.AdapterResponse;
-import com.inomera.middleware.config.HttpBeanConfiguration;
-import com.inomera.mirketadapter.MirketAdapterBeanConfiguration;
 import com.inomera.mirketadapter.rest.MirketAdapter;
 import com.inomera.mirketadapter.soap.CountryAdapter;
 import com.inomera.mirketadapter.soap.model.Continents;
@@ -10,13 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @SpringBootApplication
-@Import({MirketAdapterBeanConfiguration.class, HttpBeanConfiguration.class})
 public class MsExampleApplication {
 
     @Autowired

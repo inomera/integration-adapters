@@ -18,10 +18,20 @@ import com.inomera.middleware.client.interceptor.auth.rest.RestDefaultBearerToke
 import com.inomera.middleware.client.interceptor.auth.rest.RestHttpHeaderInterceptor;
 import com.inomera.middleware.client.interceptor.auth.rest.RestNoneAuthInterceptor;
 import com.inomera.middleware.client.interceptor.log.RestLoggingInterceptor;
+import com.inomera.middleware.client.rest.util.CustomRestTemplateBuilder;
 import com.inomera.middleware.util.HeaderUtils;
 import com.inomera.middleware.util.SslBundleUtils;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -42,13 +52,6 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
  * Base rest adapter implementation of {@link HttpAdapterClient}. Uses spring rest template as
  * intermediate layer to make http level configurations in a standard way.
@@ -63,60 +66,67 @@ import java.util.function.Supplier;
 @Slf4j
 public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
 
-  private final RestTemplate restTemplate;
+  private final ConcurrentHashMap<String, ReentrantLock> reloadRestLockMap = new ConcurrentHashMap<>();
 
+  private volatile RestTemplate restTemplate;
+  private final Supplier<AdapterConfig> configSupplierFunc;
+
+  /**
+   * Static configs without dynamic configs constructors!!
+   *
+   * @param clientHttpRequestFactory
+   */
   public BaseRestAdapterClient(ClientHttpRequestFactory clientHttpRequestFactory) {
     this.restTemplate = new RestTemplateBuilder()
         .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory))
         .build();
     this.restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+    this.configSupplierFunc = () -> null;
   }
 
+  /**
+   * Lazy dynamic configs init constructor
+   *
+   * @param configSupplierFunc
+   */
+  public BaseRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc) {
+    Assert.notNull(configSupplierFunc, "AdapterConfig cannot be null");
+    AdapterConfig adapterConfig = configSupplierFunc.get();
+    Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
+    this.configSupplierFunc = configSupplierFunc;
+  }
+
+  /**
+   * Eager dynamic configs init constructor
+   *
+   * @param configSupplierFunc
+   * @param clientHttpRequestFactory
+   */
   public BaseRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc,
       ClientHttpRequestFactory clientHttpRequestFactory) {
     Assert.notNull(configSupplierFunc, "AdapterConfig cannot be null");
     Assert.notNull(clientHttpRequestFactory, "ClientHttpRequestFactory cannot be null");
     AdapterConfig adapterConfig = configSupplierFunc.get();
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
-    List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
-        adapterConfig);
-
-    this.restTemplate = new RestTemplateBuilder()
-        .setConnectTimeout(Duration.ofMillis(
-            adapterConfig.getAdapterProperties().getHttp().getConnectTimeout()))
-        .setReadTimeout(Duration.ofMillis(
-            adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
-        .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory))
-        .setSslBundle(SslBundleUtils.createSslBundle(adapterConfig.getAdapterProperties().getHttp(),
-            adapterConfig.getUrl()))
-        .interceptors(interceptors)
-        .build();
-    this.restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+    this.configSupplierFunc = configSupplierFunc;
+    this.restTemplate = enrichRestTemplateWithHttpConfigs(clientHttpRequestFactory, adapterConfig);
   }
 
+  /**
+   * Eager dynamic configs init constructor
+   *
+   * @param configSupplierFunc
+   * @param clientHttpRequestFactoryType
+   */
   public BaseRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc,
       Class<? extends ClientHttpRequestFactory> clientHttpRequestFactoryType) {
     Assert.notNull(configSupplierFunc, "AdapterConfig cannot be null");
     Assert.notNull(clientHttpRequestFactoryType, "clientHttpRequestFactoryType cannot be null");
     AdapterConfig adapterConfig = configSupplierFunc.get();
     Assert.notNull(adapterConfig, "AdapterConfig cannot be null");
-    List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
+    this.configSupplierFunc = configSupplierFunc;
+    this.restTemplate = enrichRestTemplateWithHttpConfigs(clientHttpRequestFactoryType,
         adapterConfig);
-    this.restTemplate = new RestTemplateBuilder()
-        .requestFactory(settings -> new BufferingClientHttpRequestFactory(
-            ClientHttpRequestFactories.get(clientHttpRequestFactoryType,
-                settings
-                    .withConnectTimeout(Duration.ofMillis(
-                        adapterConfig.getAdapterProperties().getHttp().getConnectTimeout()))
-                    .withReadTimeout(Duration.ofMillis(
-                        adapterConfig.getAdapterProperties().getHttp().getRequestTimeout()))
-                    .withSslBundle(
-                        SslBundleUtils.createSslBundle(adapterConfig.getAdapterProperties()
-                            .getHttp(), adapterConfig.getUrl()))
-            )))
-        .interceptors(interceptors)
-        .build();
-    this.restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
   }
 
   @Override
@@ -126,7 +136,6 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
       var headers = httpAdapterRequest.getHeaders() != null ? new LinkedMultiValueMap<>(
           HeaderUtils.convertToListMap(httpAdapterRequest.getHeaders()))
           : new LinkedMultiValueMap<String, String>();
-      //TODO: add interceptor for dynamic configuration
       headers.addIfAbsent(HttpHeaders.CONTENT_TYPE,
           getHeaderOrDefault(httpAdapterRequest, HttpHeaders.CONTENT_TYPE,
               MimeTypeUtils.APPLICATION_JSON_VALUE));
@@ -138,6 +147,10 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
               StandardCharsets.UTF_8.name()));
 
       var httpEntity = new HttpEntity<>(httpAdapterRequest.getRequestBody(), headers);
+      if (this.reloadRuntime()) {
+        AdapterConfig adapterConfig = this.configSupplierFunc.get();
+        reloadRestTemplate(this.restTemplate.getRequestFactory(), adapterConfig);
+      }
       var respResponseEntity = this.restTemplate.exchange(
           httpAdapterRequest.getUrl(),
           HttpMethod.valueOf(httpAdapterRequest.getMethod().name()),
@@ -153,6 +166,75 @@ public abstract class BaseRestAdapterClient implements HttpRestAdapterClient {
       LOG.error("RestClientException exception occurred", e);
       throw createException(e, httpAdapterRequest);
     }
+  }
+
+
+  @Override
+  public boolean reloadRuntime() {
+    if (null == this.configSupplierFunc) {
+      return false;
+    }
+    AdapterConfig adapterConfig = this.configSupplierFunc.get();
+    if (null == adapterConfig) {
+      return false;
+    }
+    return adapterConfig.getAdapterProperties()
+        .isRuntime() && adapterConfig.isRefresh();
+  }
+
+  public void reloadRestTemplate(ClientHttpRequestFactory factory, AdapterConfig adapterConfig) {
+    ReentrantLock configLock = reloadRestLockMap.computeIfAbsent(adapterConfig.getKey(),
+        key -> new ReentrantLock());
+    configLock.lock();
+    try {
+      this.restTemplate = enrichRestTemplateWithHttpConfigs(factory, adapterConfig);
+      LOG.info(
+          "RestTemplate reloaded at runtime with with new configuration. key : {}, adapterConfig : {}",
+          adapterConfig.getKey(), adapterConfig.toSecureString());
+    } finally {
+      configLock.unlock();
+      reloadRestLockMap.computeIfPresent(adapterConfig.getKey(),
+          (id, existingLock) -> existingLock.hasQueuedThreads() ? existingLock : null);
+    }
+  }
+
+  private RestTemplate enrichRestTemplateWithHttpConfigs(Object clientHttpRequestFactoryInput,
+      AdapterConfig adapterConfig) {
+    List<ClientHttpRequestInterceptor> interceptors = getClientHttpRequestInterceptors(
+        adapterConfig);
+    Duration connectTimeout = Duration.ofMillis(
+        adapterConfig.getAdapterProperties().getHttp().getConnectTimeout());
+    Duration readTimeout = Duration.ofMillis(
+        adapterConfig.getAdapterProperties().getHttp().getRequestTimeout());
+
+    final SslBundle sslBundle = SslBundleUtils.createSslBundle(adapterConfig.getAdapterProperties()
+        .getHttp(), adapterConfig.getUrl());
+
+    CustomRestTemplateBuilder customRestTemplateBuilder = new CustomRestTemplateBuilder()
+        .setRequestFactorySettings(connectTimeout, readTimeout)
+        .setSslBundle(sslBundle)
+        .interceptors(interceptors);
+
+    if (clientHttpRequestFactoryInput instanceof ClientHttpRequestFactory clientHttpRequestFactory) {
+      customRestTemplateBuilder.requestFactory(() -> clientHttpRequestFactory);
+    } else if (clientHttpRequestFactoryInput instanceof Class<?>) {
+      customRestTemplateBuilder.requestFactory(settings ->
+          ClientHttpRequestFactories.get(
+              (Class<? extends ClientHttpRequestFactory>) clientHttpRequestFactoryInput,
+              settings.
+                  withConnectTimeout(connectTimeout)
+                  .withReadTimeout(readTimeout)
+                  .withSslBundle(
+                      sslBundle)));
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported input type for clientHttpRequestFactoryInput");
+    }
+
+    RestTemplate restTemplate = customRestTemplateBuilder.build();
+    restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+
+    return restTemplate;
   }
 
   private List<ClientHttpRequestInterceptor> getClientHttpRequestInterceptors(

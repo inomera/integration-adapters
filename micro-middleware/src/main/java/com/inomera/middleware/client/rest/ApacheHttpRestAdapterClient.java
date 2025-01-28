@@ -1,18 +1,19 @@
 package com.inomera.middleware.client.rest;
 
 import com.inomera.integration.config.model.AdapterConfig;
-import java.util.function.Supplier;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+import java.util.function.Supplier;
 
 /**
  * An Apache HTTP based REST adapter client.
+ * @author Salih Oran, Turgay Can
  */
 public final class ApacheHttpRestAdapterClient extends BaseRestAdapterClient {
 
   public ApacheHttpRestAdapterClient() {
-    super(new HttpComponentsClientHttpRequestFactory());
+    super(new CustomHttpComponentsClientHttpRequestFactory());
   }
 
   public ApacheHttpRestAdapterClient(ClientHttpRequestFactory clientHttpRequestFactory) {
@@ -20,7 +21,7 @@ public final class ApacheHttpRestAdapterClient extends BaseRestAdapterClient {
   }
 
   public ApacheHttpRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc) {
-    super(configSupplierFunc, HttpComponentsClientHttpRequestFactory.class);
+    super(configSupplierFunc, CustomHttpComponentsClientHttpRequestFactory.class);
   }
 
   public ApacheHttpRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc,
@@ -29,12 +30,12 @@ public final class ApacheHttpRestAdapterClient extends BaseRestAdapterClient {
   }
 
   public ApacheHttpRestAdapterClient(HttpClient httpClient) {
-    super(new HttpComponentsClientHttpRequestFactory(httpClient));
+    super(new CustomHttpComponentsClientHttpRequestFactory(httpClient));
   }
 
   public ApacheHttpRestAdapterClient(Supplier<AdapterConfig> configSupplierFunc,
       HttpClient httpClient) {
-    super(configSupplierFunc, new HttpComponentsClientHttpRequestFactory(httpClient));
+    super(configSupplierFunc, new CustomHttpComponentsClientHttpRequestFactory(httpClient));
   }
 
 

@@ -1,0 +1,37 @@
+{
+  "key": "config.adapter.country.v1",
+  "adapterProperties": {
+    "runtime": false,
+    "logging": {
+      "strategy": "REQ_RES",
+      "sensitiveFields": [
+        "Authorization",
+        "X-GW-TOKEN"
+      ],
+      "nonLoggingFields": [
+        "file",
+        "content"
+      ]
+    },
+    "url": "http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso",
+    "headers": {
+      "SOAPAction": "CountryNameResponse"
+    },
+    "http": {
+      "requestTimeout": 30000,
+      "connectTimeout": 10000,
+      "idleConnectionsTimeout": 60000,
+      "maxConnections": 50,
+      "maxConnPerRoute": 50,
+      "poolConcurrencyPolicy": "LAX",
+      "timeToLive": 60000,
+      "skipSsl": true,
+      "redirectsEnable": true
+    },
+    "auth": {
+      "type": "BASIC",
+      "username": "inomera",
+      "password": "inomera"
+    }
+  }
+}

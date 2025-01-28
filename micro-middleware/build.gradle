@@ -1,5 +1,5 @@
 plugins {
-  id "java"
+  id "java-library"
   id "maven-publish"
 }
 
@@ -16,33 +16,33 @@ repositories {
 
 dependencies {
   //INFO : for versioning it should be api!! DO NOT REMOVE THE INFO LINE
-  //implementation "com.inomera.integration:micro-integration:${versions.integration}"
+//  api "com.inomera.integration:micro-integration:${versions.integration}"
   //INFO : disabled comment out line for only development!! DO NOT REMOVE THE INFO LINE
   implementation project(path: ':micro-integration')
 
-  // multiple ssl support for JDK certs
-  implementation 'com.inomera.telco:ssl-forge:1.0.0'
+  // combine multiple ssl certs for JDK certs
+  api 'com.inomera.telco:ssl-forge:1.0.0'
 
   // soap
-  implementation "org.springframework.ws:spring-ws-core:${versions.spring_ws_core}"
+  api "org.springframework.ws:spring-ws-core:${versions.spring_ws_core}"
 
-  implementation "jakarta.xml.ws:jakarta.xml.ws-api:${versions.jakarta_xml_ws_api}"
-  implementation "com.sun.xml.ws:jaxws-rt:${versions.jakarta_ws_rt}"
-  implementation "org.springframework.boot:spring-boot-starter-web:${versions.spring_boot_ws}"
+  api "jakarta.xml.ws:jakarta.xml.ws-api:${versions.jakarta_xml_ws_api}"
+  api "com.sun.xml.ws:jaxws-rt:${versions.jakarta_ws_rt}"
+  api "org.springframework.boot:spring-boot-starter-web:${versions.spring_boot_ws}"
 
   // http client dependencies for http rest & soap external adapter provider
-  implementation "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
-  implementation "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
+  api "org.apache.httpcomponents.client5:httpclient5:${versions.httpclient5}"
+  api "org.apache.httpcomponents.client5:httpclient5-fluent:${versions.httpclient5}"
 
   //utilities
-  implementation "org.apache.commons:commons-lang3:${versions.commons_lang3}"
-  implementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}"
-  implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+  api "org.apache.commons:commons-lang3:${versions.commons_lang3}"
+  api "com.fasterxml.jackson.core:jackson-core:${versions.jackson_core}"
+  api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
   implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
   annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
-  implementation "org.projectlombok:lombok:${versions.lombok}"
+  api "org.projectlombok:lombok:${versions.lombok}"
   annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-  implementation "com.jayway.jsonpath:json-path:${versions.jsonpath}"
+  api "com.jayway.jsonpath:json-path:${versions.jsonpath}"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
   testImplementation "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"

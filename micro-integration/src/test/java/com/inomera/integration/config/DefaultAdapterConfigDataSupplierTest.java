@@ -25,7 +25,7 @@ class DefaultAdapterConfigDataSupplierTest {
         assertEquals(20000L, config.getAdapterProperties().getHttp().getRequestTimeout());
         assertEquals(30000L, config.getAdapterProperties().getHttp().getIdleConnectionsTimeout());
         assertEquals(30000L, config.getAdapterProperties().getHttp().getTimeToLive());
-        assertTrue(config.getAdapterProperties().getHttp().isSkipSsl());
+        assertTrue(config.getAdapterProperties().getHttp().getSkipSsl());
     }
 
     @Test

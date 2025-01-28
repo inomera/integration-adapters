@@ -15,35 +15,48 @@ import com.inomera.telco.commons.config.ConfigurationHolder;
 import com.inomera.telco.commons.lang.Assert;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor
 public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterConfigDataSupplier {
 
   private static final String COMMON_CONFIG_V1_KEY = "config.adapter.common.v1";
+  private final ConcurrentHashMap<String, String> configReloadMap = new ConcurrentHashMap<>();
 
   private final ConfigurationHolder configurationHolder;
 
   @Override
   public AdapterConfig getConfigV1(String key) {
-    Assert.notNull(key);
+    Assert.notNull(key, "Key cannot be null");
     try {
-      final Map<String, Object> adapterPropertiesMap = getConfig(key, Map.class);
-      if (null == adapterPropertiesMap) {
-        throw new AdapterConfigException("adapter config Key::" + key + " is not found");
+      // Get the adapter properties map
+      Map<String, Object> adapterPropertiesMap = getConfig(key, Map.class);
+      if (adapterPropertiesMap == null) {
+        throw new AdapterConfigException("Adapter config for key '" + key + "' is not found");
       }
 
-      Map<String, Object> authMap = (Map<String, Object>) adapterPropertiesMap.get("auth");
-      final Auth authCredentials = getAuthCredentials(authMap);
-      final AdapterProperties adapterProperties = getConfig(key, AdapterProperties.class);
+      // Extract and set authentication credentials
+      Auth authCredentials = extractAuthCredentials(adapterPropertiesMap);
+
+      // Create AdapterProperties and set authentication
+      AdapterProperties adapterProperties = getConfig(key, AdapterProperties.class);
       adapterProperties.setAuth(authCredentials);
-      final AdapterConfig adapterConfig = new AdapterConfig(key, adapterProperties);
-      return mergeWithCommonConfigIfNotSetInAdapterConfig(adapterConfig);
+
+      // Merge with common configuration
+      AdapterConfig adapterConfig = new AdapterConfig(key, adapterProperties);
+      AdapterConfig mergedAdapterConfig = mergeWithCommonConfigIfNotSetInAdapterConfig(adapterConfig);
+
+      // Handle configuration reload logic
+      handleConfigReload(key, mergedAdapterConfig);
+
+      return mergedAdapterConfig;
     } catch (Exception e) {
-      LOG.error("key::{}, Config deserialization error occurred", key, e);
-      throw new AdapterConfigException("Adapter Config Exception", e.getCause());
+      LOG.error("Key: {}, Config deserialization error occurred", key, e);
+      throw new AdapterConfigException("Adapter Config Exception", e);
     }
   }
 
@@ -96,6 +109,30 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
     };
   }
 
+
+  private Auth extractAuthCredentials(Map<String, Object> adapterPropertiesMap) {
+    Map<String, Object> authMap = (Map<String, Object>) adapterPropertiesMap.get("auth");
+    if (authMap == null) {
+      throw new AdapterConfigException("'auth' section is missing in adapter properties");
+    }
+    return getAuthCredentials(authMap);
+  }
+
+  private void handleConfigReload(String key, AdapterConfig mergedAdapterConfig) {
+    final String currentHash = configReloadMap.get(key);
+    if (StringUtils.isBlank(currentHash)) {
+      // Initial load
+      configReloadMap.put(key, mergedAdapterConfig.hashConfig());
+      mergedAdapterConfig.setRefresh(true);
+    } else if (currentHash.equals(mergedAdapterConfig.hashConfig())) {
+      // No changes in configuration
+      mergedAdapterConfig.setRefresh(false);
+    } else {
+      // Configuration has changed
+      configReloadMap.put(key, mergedAdapterConfig.hashConfig());
+      mergedAdapterConfig.setRefresh(true);
+    }
+  }
 
   private Auth getAuthCredentials(Map<String, Object> authMap) {
     String authType = (String) authMap.get("type");

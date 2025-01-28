@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.inomera.integration.config.DefaultAdapterConfigDataSupplier;
-import com.inomera.integration.config.model.AdapterLogging;
-import com.inomera.integration.config.model.LogStrategy;
 import com.inomera.integration.model.AdapterResponse;
 import com.inomera.middleware.client.rest.ApacheHttpRestAdapterClient;
 import com.inomera.mirketadapter.rest.model.MirketRestAdapterProperties;
@@ -16,7 +14,10 @@ import com.inomera.mirketadapter.rest.rto.FirstRestResponse;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -39,13 +40,11 @@ class MirketAdapterImplTest {
   private MirketAdapterImpl defaultMirketAdapter;
 
   @BeforeEach
-  public void prepare() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-
+  public void prepare() throws NoSuchAlgorithmException, KeyManagementException {
     DefaultAdapterConfigDataSupplier defaultAdapterConfigDataSupplier = new DefaultAdapterConfigDataSupplier(
-        "https://api.mirket.inomera.com/mirket");
+        "https://api.mirket.inomera.com/outageInfo");
 
     SSLContext sslContext = SSLContextBuilder.create()
-        .loadTrustMaterial(null, new TrustAllStrategy())  // <--- accepts each certificate
         .build();
 
     Registry<ConnectionSocketFactory> socketRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -59,6 +58,7 @@ class MirketAdapterImplTest {
         .build();
 
     final ApacheHttpRestAdapterClient apacheHttpRestAdapterClient = new ApacheHttpRestAdapterClient(
+        defaultAdapterConfigDataSupplier::getConfig,
         httpClient);
 
     defaultMirketAdapter = new MirketAdapterImpl(defaultAdapterConfigDataSupplier::getConfig,
