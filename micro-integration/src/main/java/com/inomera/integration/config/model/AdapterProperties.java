@@ -8,8 +8,8 @@ public class AdapterProperties implements Serializable {
     private String url;
     private Map<String, String> headers;
     private HttpClientProperties http;
-    private Auth auth;
-    private Boolean runtime;
+    private Auth auth = new Auth.NoneAuth();
+    private Boolean runtime = false;
 
     public AdapterProperties() {
     }
@@ -91,20 +91,20 @@ public class AdapterProperties implements Serializable {
         if (commonConfigAdapterProperties == null) {
             return;
         }
-        if (this.logging == null && commonConfigAdapterProperties.getLogging() == null) {
+        if (this.logging == null) {
             this.logging = new AdapterLogging();
+            this.logging.patch(commonConfigAdapterProperties.getLogging());
         }
-        this.logging.patch(commonConfigAdapterProperties.getLogging());
 
-        if (this.http == null && commonConfigAdapterProperties.getHttp() == null) {
+        if (this.http == null) {
             this.http = new HttpClientProperties();
+            this.http.patch(commonConfigAdapterProperties.getHttp());
         }
-        this.http.patch(commonConfigAdapterProperties.getHttp());
 
-        if (this.auth == null && commonConfigAdapterProperties.getAuth() == null) {
+        if (this.auth == null) {
             this.auth = new Auth.NoneAuth();
+            this.auth.patch(commonConfigAdapterProperties.getAuth());
         }
-        this.auth.patch(commonConfigAdapterProperties.getAuth());
 
         if (this.getHeaders() == null) {
             this.setHeaders(commonConfigAdapterProperties.getHeaders());
@@ -113,6 +113,7 @@ public class AdapterProperties implements Serializable {
                     this.getHeaders().putIfAbsent(key, value)
             );
         }
+
         this.runtime = this.runtime != null ? this.runtime : commonConfigAdapterProperties.isRuntime();
     }
 
