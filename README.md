@@ -43,9 +43,9 @@ Configuration can be loaded and updated dynamically, either during application s
 
 | Artifact                   | Version                                                                                                                                                                                                                                    |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
-| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
-| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge/badge.svg?version=1.1.0)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
+| micro-integration         | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration/badge.svg?version=1.1.1)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-integration)                   |
+| micro-middleware          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware/badge.svg?version=1.1.1)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration/micro-middleware)                   |
+| dynamic-adapter-config-bridge          | [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge/badge.svg?version=1.1.1)](https://maven-badges.herokuapp.com/maven-central/com.inomera.integration.ext/dynamic-adapter-config-bridge)                   |
 
 ## Architecture
 
@@ -61,14 +61,75 @@ High Level Diagram
  - Add runtime configs intercepts (@turgaycan, @oransalih) : DONE (1.1.0)
  - Add ssl forge (@fatihbozik) : DONE (1.1.0)
 
-## Advantages
+## Capabilities and Technical Details**  
 
-* Data Adapter Response Model pattern utilization (re-usability)
-* REST/SOAP Exception Handling pattern utilization (re-usability)
-* Layering/Abstraction of integration
-* Standardizing integrations
-* Increase development productivity
-* Please add any one of them when using...
+**Integration Adapters** provide a comprehensive set of capabilities for **both REST and SOAP services**, ensuring **standardized, secure, and manageable** integration processes.  
+
+- **Supported HTTP Clients:**  
+  - **JDK HTTP Client**  
+  - **Apache HttpClient 5**  
+
+- **License:** **MIT Licensed**, open-source, and available via **Maven Central Repository**.  
+
+## **Capabilities**  
+
+### **1. Standardized HTTP Integration Templates (REST & SOAP)**  
+- **Success and failure scenarios are standardized** for all HTTP integrations (customizable and overridable).  
+- **Input and output data models** are unified within a single framework.  
+
+### **2. Microservice Model Isolation**  
+- The **adapter layer prevents direct imports of generated classes within microservices**.  
+- Ensures service isolation, **allowing independent evolution of integration components**.  
+
+### **3. Code Consistency and Compliance**  
+- Encourages **uniform coding practices across teams**, ensuring maintainability.  
+- Simplifies integration development and minimizes onboarding effort.  
+
+### **4. Dynamic Configuration Management**  
+- **HTTP and adapter parameters can be modified at runtime** without redeployment.  
+- Configuration can be managed via **databases, files, or centralized configuration services**.  
+- **No redeployment required**, enabling agile change management.  
+
+### **5. Advanced HTTP Logging and Monitoring**  
+- Logging levels can be **dynamically configured** and support the following modes:  
+  - **ALL:** Logs **all HTTP requests & responses** (headers, body, URL).  
+  - **REQ_RES:** Logs **request & response bodies** and **URL only**.  
+  - **FAILURE:** Logs **only failed HTTP responses** (non-200 status codes).  
+  - **NONE:** Disables logging entirely.  
+
+### **6. Sensitive Data Masking**  
+- Supports **masking of sensitive data** in **HTTP request/response bodies and headers**.  
+- Protects sensitive information such as **credit card numbers, user credentials, and tokens** from logs.  
+
+### **7. Large Payload Handling**  
+- **Selective field-level logging** allows excluding large payloads from logs.  
+- **For instance**, JSON or XML payloads can be **partially logged** while ignoring non-essential fields.  
+
+### **8. Flexible Authentication Mechanisms**  
+- Authentication settings can be **modified at runtime** without requiring redeployment.  
+- Supported authentication types:  
+  - **HTTP Basic Authentication:** Injects dynamically configured credentials into **Authorization headers**.  
+  - **Custom HTTP Header Authentication:** Allows authentication via **custom HTTP headers**.  
+  - **HTTP Bearer Authentication:** Supports **token retrieval and refresh mechanisms**.  
+  - **None:** Default usage without authentication.  
+
+### **9. SSL/TLS Certificate Management**  
+- Supports **Client SSL certificates and Hostname verification**.  
+- Allows both **TrustAll (insecure) mode** and **certificate-based validation**.  
+
+### **10. Semantic Versioning & CI/CD Compatibility**  
+- Adapter libraries are versioned using **semantic versioning principles**.  
+- Fully **compatible with CI/CD pipelines**, enabling **automated deployment and versioning**.  
+
+---
+
+## **Key Benefits**  
+✅ **Accelerates Development** → Reduces time-to-market by **streamlining integration development**.  
+✅ **Lowers Maintenance Costs** → **Standardized integration processes** simplify debugging and support.  
+✅ **Highly Configurable & Extensible** → Runtime configuration changes provide **operational flexibility**.  
+✅ **Ensures Security & Observability** → Supports **data masking and selective logging for compliance**.  
+
+With these capabilities, **Integration Adapters** empower enterprises to **build secure, scalable, and future-proof integration solutions**. 🚀
 
 ## Libraries
 
