@@ -61,7 +61,7 @@ High Level Diagram
  - Add runtime configs intercepts (@turgaycan, @oransalih) : DONE (1.1.0)
  - Add ssl forge (@fatihbozik) : DONE (1.1.0)
 
-## Capabilities and Technical Details**  
+## Capabilities and Technical Details
 
 **Integration Adapters** provide a comprehensive set of capabilities for **both REST and SOAP services**, ensuring **standardized, secure, and manageable** integration processes.  
 
