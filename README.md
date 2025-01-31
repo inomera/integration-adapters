@@ -825,4 +825,76 @@ Soap Adapter Config
 }
 ```
 
+## Configuring SSL with PEM-encoded Certificates
+
+To configure SSL in our integration adapters using PEM-encoded certificates, add the following properties to your
+`settings.properties` file:
+
+### Example Configuration
+
+For embedding an SSL certificate in a keystore:
+
+```properties
+config.adapter.mirket.v1={\
+  ...,\
+  "http": {\
+    ...,\
+    "skipSsl": false,\
+    "ssl": {\
+      "pem": {\
+        "truststore": {\
+          "certificate": "file:/Users/johndoe/mirket-certs/*"\
+        },\
+        "keystore": {\
+          "certificate": "file:/Users/johndoe/mirket-certs/*",\
+          "privateKey": "file:/Users/johndoe/mirket-certs/private/application.key",\
+          "privateKeyPassword": "your_private_key_password_here"\
+        }\
+      }\
+    },\
+    ...\
+  },\
+  ...\
+}
+```
+
+### Configuration Details
+
+- `truststore.certificate`: This property accepts a glob pattern to match all certificate files. The certificates
+  matched by the pattern will be combined into the truststore.
+- `keystore.certificate`: Path to the PEM-encoded certificate file.
+- `keystore.privateKey`: Path to the PEM-encoded private key file.
+- `keystore.privateKeyPassword`: Password used to decrypt the private key, if it is encrypted.
+- `skipSsl`: Set to `false` to enable SSL.
+
+### Using PEM Content Directly
+
+PEM content can also be used directly for both the `certificate` and `privateKey` properties. If the property values contain `BEGIN` and `END` markers, they will be treated as PEM content rather than a resource location.
+
+```properties
+config.adapter.mirket.v1={\
+  ...,\
+  "http": {\
+    ...,\
+    "skipSsl": false,\
+    "ssl": {\
+      "pem": {\
+        "truststore": {\
+          "certificate": "-----BEGIN CERTIFICATE-----\nMIID1zCCAr+gAwIBAgIUNM5QQv8IzVQsgSmmdPQNaqyzWs4wDQYJKoZIhvcNAQEL\nBQAwezELMAkGA1UEBhMCWFgxEjAQBgNVBAgMCVN0YXRlTmFtZTERMA8GA1UEBwwI\n... (rest of certificate content) ...\n-----END CERTIFICATE-----"\
+        },\
+        "keystore": {\
+          "certificate": "-----BEGIN CERTIFICATE-----\nMIID1zCCAr+gAwIBAgIUNM5QQv8IzVQsgSmmdPQNaqyzWs4wDQYJKoZIhvcNAQEL\nBQAwezELMAkGA1UEBhMCWFgxEjAQBgNVBAgMCVN0YXRlTmFtZTERMA8GA1UEBwwI\n... (rest of certificate content) ...\n-----END CERTIFICATE-----",\
+          "privateKey": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD... (rest of private key content) ...\n-----END PRIVATE KEY-----",\
+          "privateKeyPassword": "your_private_key_password_here"\
+        }\
+      }\
+    },\
+    ...\
+  },\
+  ...\
+}
+```
+
+This configuration ensures that SSL is set up using PEM-encoded certificates and private keys, and the settings are read from a JSON value in the `settings.properties` file.
+
 

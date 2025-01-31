@@ -9,8 +9,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.inomera.adapter.config.bridge.exception.AdapterConfigException;
+import com.inomera.integration.auth.AuthType;
 import com.inomera.integration.config.model.AdapterConfig;
 import com.inomera.integration.config.model.AdapterProperties;
+import com.inomera.integration.config.model.Auth;
 import com.inomera.telco.commons.config.ConfigurationHolder;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,52 @@ class DynamicAdapterConfigDataBridgeSupplierHandlerTest {
 
     assertNotNull(result);
     assertEquals(key, result.getKey());
+    assertNotNull(result.getAdapterProperties());
+    verify(configurationHolder, times(1)).getJsonObjectProperty(eq(key), eq(Map.class));
+  }
+
+  @Test
+  void testGetConfigV1WithoutAdapterAuthConfig_Success() {
+    String key = "testKey";
+    AdapterProperties mockAdapterProperties = new AdapterProperties();
+    mockAdapterProperties.setUrl("https://api.mirket.com");
+    AdapterProperties mockCommonAdapterProperties = new AdapterProperties();
+    mockCommonAdapterProperties.setAuth(new Auth.NoneAuth());
+
+    Map<String, Object> mockAdapterPropertiesMap = Map.of("url", "https://api.mirket.com");
+
+    when(configurationHolder.getJsonObjectProperty(eq(key), eq(Map.class))).thenReturn(mockAdapterPropertiesMap);
+    when(configurationHolder.getJsonObjectProperty(eq(key), eq(AdapterProperties.class))).thenReturn(mockAdapterProperties);
+    when(configurationHolder.getJsonObjectProperty(eq("config.adapter.common.v1"), eq(AdapterProperties.class))).thenReturn(mockCommonAdapterProperties);
+
+    AdapterConfig result = handler.getConfigV1(key);
+
+    assertNotNull(result);
+    assertEquals(key, result.getKey());
+    assertEquals("https://api.mirket.com", result.getAdapterProperties().getUrl());
+    assertNotNull(result.getAdapterProperties());
+    verify(configurationHolder, times(1)).getJsonObjectProperty(eq(key), eq(Map.class));
+  }
+
+  @Test
+  void testGetConfigV1WithoutAdapterAuthConfigCommonAndAdapter_Success_Default() {
+    String key = "testKey";
+    AdapterProperties mockAdapterProperties = new AdapterProperties();
+    mockAdapterProperties.setUrl("https://api.mirket.com");
+    AdapterProperties mockCommonAdapterProperties = new AdapterProperties();
+
+    Map<String, Object> mockAdapterPropertiesMap = Map.of("url", "https://api.mirket.com");
+
+    when(configurationHolder.getJsonObjectProperty(eq(key), eq(Map.class))).thenReturn(mockAdapterPropertiesMap);
+    when(configurationHolder.getJsonObjectProperty(eq(key), eq(AdapterProperties.class))).thenReturn(mockAdapterProperties);
+    when(configurationHolder.getJsonObjectProperty(eq("config.adapter.common.v1"), eq(AdapterProperties.class))).thenReturn(mockCommonAdapterProperties);
+
+    AdapterConfig result = handler.getConfigV1(key);
+
+    assertNotNull(result);
+    assertEquals(key, result.getKey());
+    assertEquals("https://api.mirket.com", result.getAdapterProperties().getUrl());
+    assertEquals(AuthType.NONE, result.getAdapterProperties().getAuth().getType());
     assertNotNull(result.getAdapterProperties());
     verify(configurationHolder, times(1)).getJsonObjectProperty(eq(key), eq(Map.class));
   }
@@ -114,19 +162,6 @@ class DynamicAdapterConfigDataBridgeSupplierHandlerTest {
     assertNotNull(result);
     assertEquals(2, result.size());
     verify(configurationHolder, times(1)).getJsonListProperty(eq(key), eq(AdapterProperties.class));
-  }
-
-  @Test
-  void testGetConfigV1_AuthExtraction_ThrowsException() {
-    String key = "testKey";
-    Map<String, Object> mockAdapterPropertiesMap = Map.of();
-
-    when(configurationHolder.getJsonObjectProperty(eq(key), eq(Map.class))).thenReturn(mockAdapterPropertiesMap);
-
-    AdapterConfigException exception = assertThrows(AdapterConfigException.class, () -> handler.getConfigV1(key));
-    assertEquals("'auth' section is missing in adapter properties", exception.getCause().getMessage());
-
-    verify(configurationHolder, times(1)).getJsonObjectProperty(eq(key), eq(Map.class));
   }
 
 }
