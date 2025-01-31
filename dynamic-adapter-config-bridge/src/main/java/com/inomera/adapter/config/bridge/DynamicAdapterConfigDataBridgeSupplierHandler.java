@@ -48,7 +48,8 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
 
       // Merge with common configuration
       AdapterConfig adapterConfig = new AdapterConfig(key, adapterProperties);
-      AdapterConfig mergedAdapterConfig = mergeWithCommonConfigIfNotSetInAdapterConfig(adapterConfig);
+      AdapterConfig mergedAdapterConfig = mergeWithCommonConfigIfNotSetInAdapterConfig(
+          adapterConfig);
 
       // Handle configuration reload logic
       handleConfigReload(key, mergedAdapterConfig);
@@ -112,8 +113,9 @@ public class DynamicAdapterConfigDataBridgeSupplierHandler implements AdapterCon
 
   private Auth extractAuthCredentials(Map<String, Object> adapterPropertiesMap) {
     Map<String, Object> authMap = (Map<String, Object>) adapterPropertiesMap.get("auth");
-    if (authMap == null) {
-      throw new AdapterConfigException("'auth' section is missing in adapter properties");
+    if (authMap == null || authMap.isEmpty()) {
+      LOG.info("'auth' section is missing in adapter properties so that return null for using common config value");
+      return null;
     }
     return getAuthCredentials(authMap);
   }
